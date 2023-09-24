@@ -3,7 +3,9 @@
 
 #include "ActorComponents/CCombatComponent.h"
 
+#include "Character/CCharacter.h"
 #include "GameFramework/Character.h"
+#include "Projectiles/CProjectile.h"
 
 static TAutoConsoleVariable<int32> CVarGodMode(
 	TEXT("GodMode"),
@@ -28,8 +30,9 @@ UCCombatComponent* UCCombatComponent::GetCombatComponent(const AActor* FromActor
 UCCombatComponent::UCCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
 	bCanBeHit = true;
+
+	FireProjectileAnimDelay = 0.2f;
 }
 
 void UCCombatComponent::Init()
@@ -47,7 +50,6 @@ void UCCombatComponent::Init()
 		}
 	}
 }
-
 
 void UCCombatComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatusType)
 {
@@ -90,6 +92,66 @@ bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const
 
 	// If we have reached this point, it means the other checks have failed and we can be hit
 	return true;
+}
+
+void UCCombatComponent::FireProjectile()
+{
+	// This means that the timer is currently running, and we don't want to re run it
+	if (FireProjectileTimerHandle.IsValid())
+		return;
+
+	ACharacter* Owner = GetOwner<ACharacter>();
+	if (FireProjectileMontage && Owner)
+	{
+		Owner->PlayAnimMontage(FireProjectileMontage);
+	}
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUFunction(this, "FireProjectile_TImerElapsed");
+
+	GetWorld()->GetTimerManager().SetTimer(FireProjectileTimerHandle, TimerDelegate, FireProjectileAnimDelay, false);
+}
+
+void UCCombatComponent::FireProjectile_TimerElapsed()
+{
+	FireProjectileTimerHandle.Invalidate();
+	
+	if (ensureAlways(ProjectileClass))
+	{
+		ACCharacter* InstigatorCharacter = GetOwner<ACCharacter>(); 
+		
+		FCollisionShape Shape;
+		Shape.SetSphere(20.f);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(InstigatorCharacter);
+
+		FCollisionObjectQueryParams ObjParams;
+		ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		FVector TraceStart = InstigatorCharacter->GetPawnViewLocation();
+		FVector TraceEnd = TraceStart + (InstigatorCharacter->GetControlRotation().Vector() * 5000);
+
+		FHitResult HitResult;
+		if (GetWorld()->SweepSingleByObjectType(HitResult, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
+		{
+			TraceEnd = HitResult.ImpactPoint;
+		}
+
+		/** @TODO: Once we have the arms model, we can use the socket location as starting location */
+		FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - TraceStart).Rotator();
+		TraceStart = (InstigatorCharacter->GetActorForwardVector() * 100.f) + TraceStart;
+		TraceStart.Z -= 10;
+		FTransform SpawnTransform = FTransform(ProjectileRotation, TraceStart);
+		
+		ACProjectile* Projectile = GetWorld()->SpawnActorDeferred<ACProjectile>(ProjectileClass, SpawnTransform,
+						InstigatorCharacter, InstigatorCharacter, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		
+		Projectile->FinishSpawning(SpawnTransform);
+		Projectile->SetAttackStatus(AttackStatusType);
+	}
 }
 
 bool UCCombatComponent::TryRegisterHit(const FAttackData& AttackData) const

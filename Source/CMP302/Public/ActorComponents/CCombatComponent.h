@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "CCombatComponent.generated.h"
 
+class ACProjectile;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitTaken);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttackStatusTypeUpdated, EAttackStatusType, PreviousType, EAttackStatusType, NewType);
 
@@ -38,15 +39,34 @@ public:
 	 */
 	void Init();
 
+	/**
+	 * Fires a projectile towards the crosshair
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void FireProjectile();
+
 protected:
 	
-	/* Whether the player can be hit, this will be enabled during iFrames(invincibility frames) */
+	/** Whether the player can be hit, this will be enabled during iFrames(invincibility frames) */
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bCanBeHit;
 
-	/* Current attack status type */
+	/** Current attack status type */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	EAttackStatusType AttackStatusType = EAttackStatusType::None;
+
+	/** The class to be used to spawn projectile with */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	TSubclassOf<ACProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float FireProjectileAnimDelay;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UAnimMontage* FireProjectileMontage;
+
+	UPROPERTY()
+	FTimerHandle FireProjectileTimerHandle;
 
 private:
 	/**
@@ -55,6 +75,12 @@ private:
 	 * @return Whether the character can be hit or not
 	 */
 	bool CheckCanBeHit(const FAttackData& AttackData) const;
+
+	/**
+	 * Performs the actual firing of the projectile
+	 */
+	UFUNCTION()
+	void FireProjectile_TimerElapsed();
 
 public:
 	/**

@@ -65,6 +65,12 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		// Move and Look actions
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACCharacter::Look);
+
+		// Fire Projectile
+		EnhancedInputComponent->BindAction(FireProjectileAction, ETriggerEvent::Triggered, this, &ACCharacter::FireProjectile);
+
+		// Switch Status
+		EnhancedInputComponent->BindAction(SwitchAttackStatusAction, ETriggerEvent::Triggered, this, &ACCharacter::SwitchAttackStatus);
 	}
 }
 
@@ -90,6 +96,33 @@ void ACCharacter::Look(const FInputActionValue& Value)
 		// @NOTE: Here we could add a check for inverting if the player has selected inverted controls
 		AddControllerPitchInput(LookVector.Y);
 	}
+}
+
+void ACCharacter::FireProjectile(const FInputActionValue& Value)
+{
+	if (ensureAlways(CombatComponent))
+		CombatComponent->FireProjectile();
+}
+
+void ACCharacter::SwitchAttackStatus(const FInputActionValue& Value)
+{
+	const FVector2D InputVector = Value.Get<FVector2D>();
+
+	/**
+	 * Mapping for Input Vector to Attack Status:
+	 * X > 0 : Red
+	 * X < 0 : Green
+	 * Y > 0 : Blue
+	 */
+	if (!ensureAlways(CombatComponent)) return;
+	
+	if (InputVector.X > 0)
+		CombatComponent->UpdateAttackStatusType(EAttackStatusType::Red);
+	else if (InputVector.X < 0)
+		CombatComponent->UpdateAttackStatusType(EAttackStatusType::Green);
+	else if (InputVector.Y > 0)
+		CombatComponent->UpdateAttackStatusType(EAttackStatusType::Blue);
+		
 }
 
 void ACCharacter::OnHitTaken()

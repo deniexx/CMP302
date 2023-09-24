@@ -63,6 +63,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Fire Projectile Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* FireProjectileAction;
+
+	/** Switch Attack Status Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchAttackStatusAction;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -74,6 +82,14 @@ protected:
 	/** Called for looking input */
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
+
+	/** Called when we want to fire a projectile */
+	UFUNCTION()
+	void FireProjectile(const FInputActionValue& Value);
+
+	/** Called when we want to switch attack status */
+	UFUNCTION()
+	void SwitchAttackStatus(const FInputActionValue& Value);
 
 private:
 

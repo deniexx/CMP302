@@ -55,6 +55,7 @@ protected:
 	uint8 PiercedEnemies;
 
 	/** Our current attack status */
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
 	EAttackStatusType AttackStatus;
 
 	/** Fly-by sound to be played by this audio component */
@@ -74,6 +75,10 @@ protected:
 	TSubclassOf<UCameraShakeBase> HitCameraShake;
 
 protected:
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Projectile")
+	void OnAttackStatusUpdated();
+	
 	/**
 	 * Plays the visual and sound extras for this projectile upon colliding(hitting) with something
 	 */

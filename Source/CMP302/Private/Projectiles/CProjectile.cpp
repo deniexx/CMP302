@@ -25,7 +25,7 @@ ACProjectile::ACProjectile()
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->InitialSpeed = 2000.f;
-	ProjectileMovementComponent->bRotationFollowsVelocity = true; // We might need to set this to false, in order to get the shuriken to rotate properly
+	ProjectileMovementComponent->bRotationFollowsVelocity = false; // We might need to set this to false, in order to get the shuriken to rotate properly
 	ProjectileMovementComponent->bInitialVelocityInLocalSpace = true;
 
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
@@ -49,7 +49,12 @@ void ACProjectile::PostInitializeComponents()
 void ACProjectile::SetAttackStatus(EAttackStatusType NewAttackStatus)
 {
 	AttackStatus = NewAttackStatus;
-	// @TODO: Also update the projectile material
+	OnAttackStatusUpdated();
+}
+
+void ACProjectile::OnAttackStatusUpdated_Implementation()
+{
+	// @NOTE: This should be implemented in blueprint
 }
 
 void ACProjectile::PlayExtrasOnHit() const
