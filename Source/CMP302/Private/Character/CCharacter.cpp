@@ -2,18 +2,21 @@
 
 #include "CMP302/Public/Character/CCharacter.h"
 
+#include "AIController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ActorComponents/CCharacterMovementComponent.h"
 #include "ActorComponents/CCombatComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 // Sets default values
 ACCharacter::ACCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCCharacterMovementComponent>(CharacterMovementComponentName))
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// Default values used by Epic in the template
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.f);
@@ -29,10 +32,17 @@ ACCharacter::ACCharacter(const FObjectInitializer& ObjectInitializer)
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
-	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
-	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -165.f));
+
+	SwordMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SwordMesh"));
+	SwordMesh->SetupAttachment(Mesh1P, "hand_r");
+	SwordMesh->bCastDynamicShadow = false;
+	SwordMesh->CastShadow = false;
 
 	CombatComponent = CreateDefaultSubobject<UCCombatComponent>(TEXT("CombatComponent"));
+
+	bDead = false;
+	AppearanceAlpha = 0.f;
 }
 
 // Called when the game starts or when spawned
@@ -41,16 +51,65 @@ void ACCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ExtendedMovementComponent = GetCharacterMovement<UCCharacterMovementComponent>();
-	CombatComponent->OnHitTaken.AddDynamic(this, &ThisClass::OnHitTaken);
-	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	
+	CombatComponent->OnHitTaken.AddDynamic(this, &ACCharacter::OnHitTaken);
+	CombatComponent->Init();
+	
+	USkeletalMeshComponent* MeshComponent = Mesh1P->GetSkeletalMeshAsset() ? Mesh1P : GetMesh();
+	const int32 NumMaterials = MeshComponent->GetNumMaterials();
+	for (int i = 0; i < NumMaterials; ++i)
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
+		MeshDynamicMaterials.Add(MeshComponent->CreateDynamicMaterialInstance(i, MeshComponent->GetMaterial(i)));
 	}
 
-	CombatComponent->Init();
+	SwordMesh->IgnoreActorWhenMoving(this, true);
+	SwordMesh->OnComponentBeginOverlap.AddDynamic(this, &ACCharacter::OnSwordHit);
+	SwitchSwordCollision(false);
+	
+	if (APlayerController* PlayerController = GetController<APlayerController>())
+	{
+		PlayerController->SetIgnoreLookInput(true);
+		PlayerController->SetIgnoreMoveInput(true);
+	}
+}
+
+void ACCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	const float AlphaTarget = bDead ? 0.f : 1.f;
+
+	if (!FMath::IsNearlyEqual(AppearanceAlpha, AlphaTarget))
+	{
+		AppearanceAlpha += bDead ? -DeltaSeconds : DeltaSeconds;
+		AppearanceAlpha = FMath::Clamp(AppearanceAlpha, 0, 1);
+
+		if (UMaterialParameterCollection* ParamCollection = CombatComponent ? CombatComponent->GetPlayerMaterialParameters() : nullptr)
+		{
+			UKismetMaterialLibrary::SetScalarParameterValue(this, ParamCollection, "Appearance", AppearanceAlpha);
+		}
+		
+		for (UMaterialInstanceDynamic* Material : MeshDynamicMaterials)
+		{
+			Material->SetScalarParameterValue("Appearance", AppearanceAlpha);
+		}
+	}
+	else if (bDead && FMath::IsNearlyZero(AlphaTarget))
+	{
+		Destroy();
+	}
+	else if (FMath::IsNearlyEqual(AppearanceAlpha, 1))
+	{
+		if (APlayerController* PlayerController = GetController<APlayerController>())
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				PlayerController->SetIgnoreLookInput(false);
+				PlayerController->SetIgnoreMoveInput(false);
+			}
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -78,7 +137,15 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		// Dash
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ACCharacter::BeginDash);
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Completed, this, &ACCharacter::EndDash);
+
+		// Slash
+		EnhancedInputComponent->BindAction(SlashAction, ETriggerEvent::Started, this, &ACCharacter::SlashAttack);
 	}
+}
+
+void ACCharacter::SwitchSwordCollision(bool bEnabled) const
+{
+	SwordMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
 
 void ACCharacter::Move(const FInputActionValue& Value)
@@ -142,7 +209,24 @@ void ACCharacter::EndDash(const FInputActionValue& Value)
 	ExtendedMovementComponent->EndDash();
 }
 
+void ACCharacter::SlashAttack(const FInputActionValue& Value)
+{
+	CombatComponent->SlashAttack();
+}
+
 void ACCharacter::OnHitTaken()
 {
-	GEngine->AddOnScreenDebugMessage(0, 10, FColor::Green, "HitTaken");
+	if (AAIController* AiController = GetController<AAIController>())
+	{
+		bDead = true;
+		AiController->Destroy();
+	}
+}
+
+void ACCharacter::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	FAttackData AttackData;
+	AttackData.Instigator = this;
+	AttackData.AttackStatusType = CombatComponent->GetAttackStatusType();
+	UCGameplayFunctionLibrary::TryRegisterHit(AttackData, OtherActor);
 }

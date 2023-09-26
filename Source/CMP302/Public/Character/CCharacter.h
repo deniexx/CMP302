@@ -10,6 +10,7 @@
 class UCCharacterMovementComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
+class UMaterialParameterCollection;
 class USceneComponent;
 class UCameraComponent;
 class UInputAction;
@@ -46,6 +47,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UCCharacterMovementComponent* ExtendedMovementComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* SwordMesh;
+
 	/* -----------------------------------------------------
 	 *						     PROPERTIES
 	 * -----------------------------------------------------
@@ -79,9 +83,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* DashAction;
 
+	/** Slash Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* SlashAction;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 
 	/** Called for movement input */
 	UFUNCTION()
@@ -105,10 +115,23 @@ protected:
 	UFUNCTION()
 	void EndDash(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void SlashAttack(const FInputActionValue& Value);
+
 private:
 
 	UFUNCTION()
 	void OnHitTaken();
+
+	UFUNCTION()
+	void OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UPROPERTY()
+	TArray<UMaterialInstanceDynamic*> MeshDynamicMaterials;
+
+	bool bDead;
+
+	float AppearanceAlpha;
 
 public:	
 
@@ -121,4 +144,9 @@ public:
 	/** Returns FirstPersonCameraComponent sub object */
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	/**
+	 * Switches the sword collision between Query Only and No Collision
+	 * @param bEnabled Should the collision be enabled
+	 */
+	void SwitchSwordCollision(bool bEnabled) const;
 };

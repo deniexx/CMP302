@@ -6,7 +6,6 @@
 #include "Character/CCharacter.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMaterialLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Projectiles/CProjectile.h"
 #include "System/CGameplayFunctionLibrary.h"
 
@@ -32,18 +31,38 @@ UCCombatComponent* UCCombatComponent::GetCombatComponent(const AActor* FromActor
 // Sets default values for this component's properties
 UCCombatComponent::UCCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 	bCanBeHit = true;
+	bIsSlashAttackReady = true;
 
 	FireProjectileAnimDelay = 0.2f;
+	SlashAttackAnimDelay = 0.2f;
+	ColorLerpAlpha = 0.f;
+	ColorLerpSpeed = 1.f;
+}
+
+void UCCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	/** Lerp smoothly between the previous and the current attack status color */
+	if (ColorLerpAlpha < 1)
+	{
+		const FLinearColor Color = FMath::Lerp(PreviousAttackStatusColor, CurrentAttackStatusColor, ColorLerpAlpha);
+		UKismetMaterialLibrary::SetVectorParameterValue(CharacterOwner, PlayerMaterialParameters,
+				TEXT("PlayerAttackStatusColor"), Color);
+
+		ColorLerpAlpha += DeltaTime * ColorLerpSpeed;
+	}
 }
 
 void UCCombatComponent::Init()
 {
+	CharacterOwner = GetOwner<ACCharacter>();
 	if (AttackStatusType == EAttackStatusType::None)
 	{
-		const ACharacter* Owner = GetOwner<ACharacter>();
-		const bool bIsPlayerControlled = Owner ? Owner->GetController()->IsPlayerController() : false;
+		const bool bIsPlayerControlled = CharacterOwner ? CharacterOwner->GetController()->IsPlayerController() : false;
 		
 		if (!bIsPlayerControlled)
 		{
@@ -51,7 +70,26 @@ void UCCombatComponent::Init()
 			int index = FMath::RandRange(0, 2) + 1;
 			UpdateAttackStatusType(EAttackStatusType(index));
 		}
+		else
+		{
+			UpdateAttackStatusType(EAttackStatusType::Red);
+		}
 	}
+
+}
+
+void UCCombatComponent::ResetSlashAttack()
+{
+	CharacterOwner->SwitchSwordCollision(false);
+	
+	if (!SlashAttackTimerHandle.IsValid())
+		GetWorld()->GetTimerManager().SetTimer(SlashAttackTimerHandle, this, &UCCombatComponent::SlashAttack_TimerElapsed, SlashAttackAnimDelay);
+}
+
+void UCCombatComponent::SlashAttack_TimerElapsed()
+{
+	bIsSlashAttackReady = true;
+	SlashAttackTimerHandle.Invalidate();
 }
 
 void UCCombatComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatusType)
@@ -61,8 +99,14 @@ void UCCombatComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatus
 
 	OnAttackStatusTypeUpdated.Broadcast(Previous, AttackStatusType);
 
-	UKismetMaterialLibrary::SetVectorParameterValue(GetOwner(), PlayerMaterialParameters,
-		TEXT("PlayerAttackStatusColor"), FLinearColor::FromSRGBColor(UCGameplayFunctionLibrary::GetColorFromAttackStatus(NewAttackStatusType)));
+	ColorLerpAlpha = 0.f;
+	PreviousAttackStatusColor =  UKismetMaterialLibrary::GetVectorParameterValue(CharacterOwner, PlayerMaterialParameters, TEXT("PlayerAttackStatusColor"));
+	CurrentAttackStatusColor = UCGameplayFunctionLibrary::GetColorFromAttackStatus(AttackStatusType);
+}
+
+EAttackStatusType UCCombatComponent::GetAttackStatusType() const
+{
+	return AttackStatusType;
 }
 
 bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const
@@ -75,8 +119,7 @@ bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const
 		return false;
 	}
 	
-	const ACharacter* Owner = GetOwner<ACharacter>();
-	const bool bIsPlayerControlled = Owner ? Owner->GetController()->IsPlayerController() : false;
+	const bool bIsPlayerControlled = CharacterOwner ? CharacterOwner->GetController()->IsPlayerController() : false;
 	const bool bAlwaysHit = AttackData.AttackStatusType == EAttackStatusType::White;
 	
 	if (!bIsPlayerControlled)
@@ -105,11 +148,10 @@ void UCCombatComponent::FireProjectile()
 	// This means that the timer is currently running, and we don't want to re run it
 	if (FireProjectileTimerHandle.IsValid())
 		return;
-
-	ACharacter* Owner = GetOwner<ACharacter>();
-	if (FireProjectileMontage && Owner)
+	
+	if (FireProjectileMontage && CharacterOwner)
 	{
-		Owner->PlayAnimMontage(FireProjectileMontage);
+		CharacterOwner->PlayAnimMontage(FireProjectileMontage);
 	}
 
 	FTimerDelegate TimerDelegate;
@@ -118,27 +160,42 @@ void UCCombatComponent::FireProjectile()
 	GetWorld()->GetTimerManager().SetTimer(FireProjectileTimerHandle, TimerDelegate, FireProjectileAnimDelay, false);
 }
 
+void UCCombatComponent::SlashAttack()
+{
+	if (!bIsSlashAttackReady) return;
+	
+	const int index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
+
+	if (UAnimMontage* AnimMontage = SlashAttackMontages[index])
+	{
+		if (UAnimInstance* AnimInstance = CharacterOwner->GetMesh1P()->GetAnimInstance())
+		{
+			bIsSlashAttackReady = false;
+			CharacterOwner->SwitchSwordCollision(true);
+			AnimInstance->Montage_Play(AnimMontage);
+		}
+	}
+}
+
 void UCCombatComponent::FireProjectile_TimerElapsed()
 {
 	FireProjectileTimerHandle.Invalidate();
 	
 	if (ensureAlways(ProjectileClass))
 	{
-		ACCharacter* InstigatorCharacter = GetOwner<ACCharacter>(); 
-		
 		FCollisionShape Shape;
 		Shape.SetSphere(20.f);
 
 		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(InstigatorCharacter);
+		Params.AddIgnoredActor(CharacterOwner);
 
 		FCollisionObjectQueryParams ObjParams;
 		ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 		ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
 		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
 
-		FVector TraceStart = InstigatorCharacter->GetPawnViewLocation();
-		FVector TraceEnd = TraceStart + (InstigatorCharacter->GetControlRotation().Vector() * 5000);
+		FVector TraceStart = CharacterOwner->GetPawnViewLocation();
+		FVector TraceEnd = TraceStart + (CharacterOwner->GetControlRotation().Vector() * 5000);
 
 		FHitResult HitResult;
 		if (GetWorld()->SweepSingleByObjectType(HitResult, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
@@ -148,12 +205,12 @@ void UCCombatComponent::FireProjectile_TimerElapsed()
 
 		/** @TODO: Once we have the arms model, we can use the socket location as starting location */
 		FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - TraceStart).Rotator();
-		TraceStart = (InstigatorCharacter->GetActorForwardVector() * 100.f) + TraceStart;
+		TraceStart = (CharacterOwner->GetActorForwardVector() * 100.f) + TraceStart;
 		TraceStart.Z -= 10;
 		FTransform SpawnTransform = FTransform(ProjectileRotation, TraceStart);
 		
 		ACProjectile* Projectile = GetWorld()->SpawnActorDeferred<ACProjectile>(ProjectileClass, SpawnTransform,
-						InstigatorCharacter, InstigatorCharacter, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+						CharacterOwner, CharacterOwner, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		
 		Projectile->FinishSpawning(SpawnTransform);
 		Projectile->SetAttackStatus(AttackStatusType);
@@ -174,4 +231,9 @@ bool UCCombatComponent::TryRegisterHit(const FAttackData& AttackData) const
 	OnHitTaken.Broadcast();
 
 	return true;
+}
+
+UMaterialParameterCollection* UCCombatComponent::GetPlayerMaterialParameters() const
+{
+	return PlayerMaterialParameters;
 }

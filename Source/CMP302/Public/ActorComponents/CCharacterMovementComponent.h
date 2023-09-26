@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CCharacterMovementComponent.generated.h"
 
+class AStaticMeshActor;
 /**
  * 
  */
@@ -46,6 +47,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 	/** The duration of the time slow while holding the dash key */
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float DashTimeSlowDuration;
@@ -56,11 +59,27 @@ protected:
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+
 private:
 
+	/** Dash Visual Effects */
+	UPROPERTY()
+	AStaticMeshActor* DashIndicatorActor;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals", meta = (AllowPrivateAccess = "true"))
+	UStaticMesh* DashIndicatorMesh;
+
+	UPROPERTY()
+	UUserWidget* DashVisualOverlayInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> DashVisualOverlayInstanceClass;
+	
 	/** Dash states */
 	bool bDashConsumed;
 	bool bDashing;
+
+	FVector DashOffset;
 
 	/** Default variables that we can return to */
 	float DefaultAirControl;

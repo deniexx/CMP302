@@ -24,7 +24,7 @@ public:
 	 * @return A color based on the AttackStatus, will return Black if we have been given an Invalid Attack Status
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GameplayFunctionLibrary")
-	static FColor GetColorFromAttackStatus(EAttackStatusType AttackStatus);
+	static FLinearColor GetColorFromAttackStatus(EAttackStatusType AttackStatus);
 
 	/**
 	 * Performs an attempt to register a hit on the target actor

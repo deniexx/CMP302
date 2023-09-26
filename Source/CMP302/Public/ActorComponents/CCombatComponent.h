@@ -8,6 +8,8 @@
 #include "CCombatComponent.generated.h"
 
 class ACProjectile;
+class ACCharacter;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitTaken);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttackStatusTypeUpdated, EAttackStatusType, PreviousType, EAttackStatusType, NewType);
 
@@ -40,12 +42,18 @@ public:
 	void Init();
 
 	/**
-	 * Fires a projectile towards the crosshair
+	 * This makes it so that we can use the slash attack again, meaning our previous animation has ended
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void FireProjectile();
+	void ResetSlashAttack();
 
+	/**
+	 * This does the actual reset of the slash attack to be able to be used again
+	 */
+	void SlashAttack_TimerElapsed();
+	
 protected:
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	/** Whether the player can be hit, this will be enabled during iFrames(invincibility frames) */
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
@@ -67,12 +75,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float FireProjectileAnimDelay;
 
+	/** This is the delay between slash attacks */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float SlashAttackAnimDelay;
+
 	/** This is the fire projectile montage */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* FireProjectileMontage;
 	
 	UPROPERTY()
 	FTimerHandle FireProjectileTimerHandle;
+
+	UPROPERTY()
+	FTimerHandle SlashAttackTimerHandle;
 
 private:
 	/**
@@ -88,6 +103,30 @@ private:
 	UFUNCTION()
 	void FireProjectile_TimerElapsed();
 
+	/** The previous color of the attack status */
+	UPROPERTY()
+	FLinearColor PreviousAttackStatusColor;
+
+	/** The current color of the attack status */
+	UPROPERTY()
+	FLinearColor CurrentAttackStatusColor;
+
+	UPROPERTY()
+	ACCharacter* CharacterOwner;
+
+	/** The Lerp Progress */
+	float ColorLerpAlpha;
+
+	/** Can we use the slash attack right now */
+	bool bIsSlashAttackReady;
+
+	/** How fast should the color lerp */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float ColorLerpSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TArray<UAnimMontage*> SlashAttackMontages;
+
 public:
 	/**
 	 * Updates the attack status type and broadcasts a delegate
@@ -95,10 +134,27 @@ public:
 	 */
 	void UpdateAttackStatusType(EAttackStatusType NewAttackStatusType);
 
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	EAttackStatusType GetAttackStatusType() const;
+
+	/**
+	 * Fires a projectile towards the crosshair
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void FireProjectile();
+
+	/**
+	 * Uses the slash attack as long as we not dashing or attack currently
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SlashAttack();
+
 	/**
 	 * Attempt to register a hit with the actor owning the component
 	 * @param AttackData Attack data to be used to determine whether the hit should be registered
 	 * @returns Whether the hit was successfully registered
 	 */
 	bool TryRegisterHit(const FAttackData& AttackData) const;
+	
+	UMaterialParameterCollection* GetPlayerMaterialParameters() const;
 };

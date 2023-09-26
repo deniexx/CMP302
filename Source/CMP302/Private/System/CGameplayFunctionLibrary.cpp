@@ -5,29 +5,29 @@
 
 #include "ActorComponents/CCombatComponent.h"
 
-FColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusType AttackStatus)
+FLinearColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusType AttackStatus)
 {
-	FColor ToReturn;
+	FLinearColor ToReturn;
 	
 	switch (AttackStatus)
 	{
 		case EAttackStatusType::Green:
-			ToReturn = FColor::Green;
+			ToReturn = FLinearColor::Green;
 			break;
 		case EAttackStatusType::Red:
-			ToReturn = FColor::Red;
+			ToReturn = FLinearColor::Red;
 			break;
 		case EAttackStatusType::Blue:
-			ToReturn = FColor::Blue;
+			ToReturn = FLinearColor::Blue;
 			break;
 		case EAttackStatusType::Enemy:
-			ToReturn = FColor::Red;
+			ToReturn = FLinearColor::Red;
 			break;
 		case EAttackStatusType::White:
-			ToReturn = FColor::White;
+			ToReturn = FLinearColor::White;
 			break;
 		default:
-			ToReturn = FColor::Black;
+			ToReturn = FLinearColor::Black;
 			break;;
 	}
 
