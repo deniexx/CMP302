@@ -7,6 +7,7 @@
 
 #include "CCharacter.generated.h"
 
+class UCCharacterMovementComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
@@ -22,7 +23,7 @@ class CMP302_API ACCharacter : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	ACCharacter();
+	ACCharacter(const FObjectInitializer& ObjectInitializer);
 
 	/* -----------------------------------------------------
 	 *							COMPONENTS	
@@ -41,6 +42,9 @@ private:
 	/** Combat Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UCCombatComponent* CombatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UCCharacterMovementComponent* ExtendedMovementComponent;
 
 	/* -----------------------------------------------------
 	 *						     PROPERTIES
@@ -71,6 +75,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchAttackStatusAction;
 
+	/** Dash Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* DashAction;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -90,6 +98,12 @@ protected:
 	/** Called when we want to switch attack status */
 	UFUNCTION()
 	void SwitchAttackStatus(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void BeginDash(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void EndDash(const FInputActionValue& Value);
 
 private:
 

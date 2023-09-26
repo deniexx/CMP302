@@ -5,7 +5,10 @@
 
 #include "Character/CCharacter.h"
 #include "GameFramework/Character.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Projectiles/CProjectile.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 static TAutoConsoleVariable<int32> CVarGodMode(
 	TEXT("GodMode"),
@@ -57,6 +60,9 @@ void UCCombatComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatus
 	AttackStatusType = NewAttackStatusType;
 
 	OnAttackStatusTypeUpdated.Broadcast(Previous, AttackStatusType);
+
+	UKismetMaterialLibrary::SetVectorParameterValue(GetOwner(), PlayerMaterialParameters,
+		TEXT("PlayerAttackStatusColor"), FLinearColor::FromSRGBColor(UCGameplayFunctionLibrary::GetColorFromAttackStatus(NewAttackStatusType)));
 }
 
 bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const

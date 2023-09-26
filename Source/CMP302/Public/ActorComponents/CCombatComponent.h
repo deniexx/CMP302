@@ -59,12 +59,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
 	TSubclassOf<ACProjectile> ProjectileClass;
 
+	/** This will drive player material parameters */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	UMaterialParameterCollection* PlayerMaterialParameters;
+
+	/** This is the delay between the animation and the actual firing of the projectile */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float FireProjectileAnimDelay;
 
+	/** This is the fire projectile montage */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* FireProjectileMontage;
-
+	
 	UPROPERTY()
 	FTimerHandle FireProjectileTimerHandle;
 

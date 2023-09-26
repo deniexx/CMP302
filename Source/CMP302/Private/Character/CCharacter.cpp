@@ -4,12 +4,14 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ActorComponents/CCharacterMovementComponent.h"
 #include "ActorComponents/CCombatComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 
 // Sets default values
-ACCharacter::ACCharacter()
+ACCharacter::ACCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCCharacterMovementComponent>(CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -37,7 +39,8 @@ ACCharacter::ACCharacter()
 void ACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	ExtendedMovementComponent = GetCharacterMovement<UCCharacterMovementComponent>();
 	CombatComponent->OnHitTaken.AddDynamic(this, &ThisClass::OnHitTaken);
 	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -59,7 +62,7 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	{
 		// Jumping
 		// @TODO: Implement a custom character movement that can handle wall running and vaulting
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Move and Look actions
@@ -67,10 +70,14 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACCharacter::Look);
 
 		// Fire Projectile
-		EnhancedInputComponent->BindAction(FireProjectileAction, ETriggerEvent::Triggered, this, &ACCharacter::FireProjectile);
+		EnhancedInputComponent->BindAction(FireProjectileAction, ETriggerEvent::Started, this, &ACCharacter::FireProjectile);
 
 		// Switch Status
-		EnhancedInputComponent->BindAction(SwitchAttackStatusAction, ETriggerEvent::Triggered, this, &ACCharacter::SwitchAttackStatus);
+		EnhancedInputComponent->BindAction(SwitchAttackStatusAction, ETriggerEvent::Started, this, &ACCharacter::SwitchAttackStatus);
+
+		// Dash
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ACCharacter::BeginDash);
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Completed, this, &ACCharacter::EndDash);
 	}
 }
 
@@ -123,6 +130,16 @@ void ACCharacter::SwitchAttackStatus(const FInputActionValue& Value)
 	else if (InputVector.Y > 0)
 		CombatComponent->UpdateAttackStatusType(EAttackStatusType::Blue);
 		
+}
+
+void ACCharacter::BeginDash(const FInputActionValue& Value)
+{
+	ExtendedMovementComponent->BeginDash();
+}
+
+void ACCharacter::EndDash(const FInputActionValue& Value)
+{
+	ExtendedMovementComponent->EndDash();
 }
 
 void ACCharacter::OnHitTaken()

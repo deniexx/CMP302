@@ -3,6 +3,8 @@
 
 #include "System/CGameplayFunctionLibrary.h"
 
+#include "ActorComponents/CCombatComponent.h"
+
 FColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusType AttackStatus)
 {
 	FColor ToReturn;
@@ -30,4 +32,15 @@ FColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusType Att
 	}
 
 	return ToReturn;
+}
+
+bool UCGameplayFunctionLibrary::TryRegisterHit(const FAttackData& AttackData, AActor* TargetActor)
+{
+	UCCombatComponent* CombatComponent = TargetActor ? UCCombatComponent::GetCombatComponent(TargetActor) : nullptr;
+	if (CombatComponent)
+	{
+		return CombatComponent->TryRegisterHit(AttackData);
+	}
+
+	return false;
 }

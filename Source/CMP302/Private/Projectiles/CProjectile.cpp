@@ -9,6 +9,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 // Sets default values
 ACProjectile::ACProjectile()
@@ -73,21 +74,15 @@ void ACProjectile::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimit
 	if (!Other) return;
 	if (Other == GetInstigator()) return;
 
-	/** If we have hit something that does not have the combat component, we play the extra effects and destroy the projectile */
-	const UCCombatComponent* Combat = UCCombatComponent::GetCombatComponent(Other);
-	if (!Combat)
-	{
-		PlayExtrasOnHit();
-		Destroy();
-		return;
-	}
+	PlayExtrasOnHit();
+	Destroy();
 
 	FAttackData AttackData;
 	AttackData.Instigator = GetInstigator();
 	AttackData.AttackStatusType = AttackStatus;
 	/** This bool can be used to determine whether we successfully hit the character, i.e. if the hit was registered
 	 * meaning they were either the same AttackStatus, or we had a White(GodType) attack status */
-	bool bSuccess = Combat->TryRegisterHit(AttackData);
+	bool bSuccess = UCGameplayFunctionLibrary::TryRegisterHit(AttackData, Other);
 	++PiercedEnemies;
 	PlayExtrasOnHit();
 	

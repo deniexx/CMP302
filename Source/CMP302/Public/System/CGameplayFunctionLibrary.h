@@ -15,6 +15,9 @@ class CMP302_API UCGameplayFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+
+public:
+	
 	/**
 	 * Gives a color based on the provided attack status
 	 * @param AttackStatus Attack Status to grab the color from
@@ -22,4 +25,13 @@ class CMP302_API UCGameplayFunctionLibrary : public UBlueprintFunctionLibrary
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GameplayFunctionLibrary")
 	static FColor GetColorFromAttackStatus(EAttackStatusType AttackStatus);
+
+	/**
+	 * Performs an attempt to register a hit on the target actor
+	 * @param AttackData AttackData to be used for hit registration
+	 * @param TargetActor The target of the hit
+	 * @return Whether the hit was successful or not
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GameplayFunctionLibrary")
+	static bool TryRegisterHit(const FAttackData& AttackData, AActor* TargetActor);
 };
