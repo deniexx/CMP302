@@ -4,7 +4,6 @@
 #include "ActorComponents/CCombatComponent.h"
 
 #include "Character/CCharacter.h"
-#include "GameFramework/Character.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Projectiles/CProjectile.h"
 #include "System/CGameplayFunctionLibrary.h"
@@ -34,9 +33,10 @@ UCCombatComponent::UCCombatComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	bCanBeHit = true;
 	bIsSlashAttackReady = true;
+	bCanFireProjectile = true;
 
-	FireProjectileAnimDelay = 0.2f;
-	SlashAttackAnimDelay = 0.2f;
+	FireProjectileDelay = 1.25f;
+	SlashAttackAnimDelay = 0.25f;
 	ColorLerpAlpha = 0.f;
 	ColorLerpSpeed = 1.f;
 }
@@ -57,12 +57,15 @@ void UCCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 }
 
-void UCCombatComponent::Init()
+void UCCombatComponent::Init(UStaticMeshComponent* InShurikenMesh)
 {
 	CharacterOwner = GetOwner<ACCharacter>();
+	ShurikenMesh = InShurikenMesh;
+	ShurikenMesh->SetVisibility(true);
 	if (AttackStatusType == EAttackStatusType::None)
 	{
-		const bool bIsPlayerControlled = CharacterOwner ? CharacterOwner->GetController()->IsPlayerController() : false;
+		const APlayerController* Controller = CharacterOwner ? CharacterOwner->GetController<APlayerController>() : nullptr;
+		const bool bIsPlayerControlled = Controller != nullptr;
 		
 		if (!bIsPlayerControlled)
 		{
@@ -75,21 +78,37 @@ void UCCombatComponent::Init()
 			UpdateAttackStatusType(EAttackStatusType::Red);
 		}
 	}
-
 }
 
-void UCCombatComponent::ResetSlashAttack()
+void UCCombatComponent::FireProjectile()
 {
-	CharacterOwner->SwitchSwordCollision(false);
+	if (!bCanFireProjectile) return;
 	
-	if (!SlashAttackTimerHandle.IsValid())
-		GetWorld()->GetTimerManager().SetTimer(SlashAttackTimerHandle, this, &UCCombatComponent::SlashAttack_TimerElapsed, SlashAttackAnimDelay);
+	if (FireProjectileMontage)
+	{
+		if (UAnimInstance* AnimInstance = CharacterOwner->GetMesh1P()->GetAnimInstance())
+		{
+			bCanFireProjectile = false;
+			AnimInstance->Montage_Play(FireProjectileMontage);
+		}
+	}
 }
 
-void UCCombatComponent::SlashAttack_TimerElapsed()
+void UCCombatComponent::SlashAttack()
 {
-	bIsSlashAttackReady = true;
-	SlashAttackTimerHandle.Invalidate();
+	if (!bIsSlashAttackReady) return;
+	
+	const int index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
+
+	if (UAnimMontage* AnimMontage = SlashAttackMontages[index])
+	{
+		if (UAnimInstance* AnimInstance = CharacterOwner->GetMesh1P()->GetAnimInstance())
+		{
+			bIsSlashAttackReady = false;
+			CharacterOwner->SwitchSwordCollision(true);
+			AnimInstance->Montage_Play(AnimMontage);
+		}
+	}
 }
 
 void UCCombatComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatusType)
@@ -104,11 +123,6 @@ void UCCombatComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatus
 	CurrentAttackStatusColor = UCGameplayFunctionLibrary::GetColorFromAttackStatus(AttackStatusType);
 }
 
-EAttackStatusType UCCombatComponent::GetAttackStatusType() const
-{
-	return AttackStatusType;
-}
-
 bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const
 {
 	const bool bGodMode = CVarGodMode.GetValueOnAnyThread() > 0;
@@ -118,8 +132,9 @@ bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const
 		// We can't be hit as we are currently in GodMode or we can't be hit (we might be dashing, etc...)
 		return false;
 	}
-	
-	const bool bIsPlayerControlled = CharacterOwner ? CharacterOwner->GetController()->IsPlayerController() : false;
+
+	const APlayerController* Controller = CharacterOwner ? CharacterOwner->GetController<APlayerController>() : nullptr;
+	const bool bIsPlayerControlled = Controller != nullptr;
 	const bool bAlwaysHit = AttackData.AttackStatusType == EAttackStatusType::White;
 	
 	if (!bIsPlayerControlled)
@@ -143,44 +158,8 @@ bool UCCombatComponent::CheckCanBeHit(const FAttackData& AttackData) const
 	return true;
 }
 
-void UCCombatComponent::FireProjectile()
+void UCCombatComponent::SpawnProjectile()
 {
-	// This means that the timer is currently running, and we don't want to re run it
-	if (FireProjectileTimerHandle.IsValid())
-		return;
-	
-	if (FireProjectileMontage && CharacterOwner)
-	{
-		CharacterOwner->PlayAnimMontage(FireProjectileMontage);
-	}
-
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUFunction(this, "FireProjectile_TImerElapsed");
-
-	GetWorld()->GetTimerManager().SetTimer(FireProjectileTimerHandle, TimerDelegate, FireProjectileAnimDelay, false);
-}
-
-void UCCombatComponent::SlashAttack()
-{
-	if (!bIsSlashAttackReady) return;
-	
-	const int index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
-
-	if (UAnimMontage* AnimMontage = SlashAttackMontages[index])
-	{
-		if (UAnimInstance* AnimInstance = CharacterOwner->GetMesh1P()->GetAnimInstance())
-		{
-			bIsSlashAttackReady = false;
-			CharacterOwner->SwitchSwordCollision(true);
-			AnimInstance->Montage_Play(AnimMontage);
-		}
-	}
-}
-
-void UCCombatComponent::FireProjectile_TimerElapsed()
-{
-	FireProjectileTimerHandle.Invalidate();
-	
 	if (ensureAlways(ProjectileClass))
 	{
 		FCollisionShape Shape;
@@ -202,19 +181,48 @@ void UCCombatComponent::FireProjectile_TimerElapsed()
 		{
 			TraceEnd = HitResult.ImpactPoint;
 		}
-
-		/** @TODO: Once we have the arms model, we can use the socket location as starting location */
+		
 		FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - TraceStart).Rotator();
 		TraceStart = (CharacterOwner->GetActorForwardVector() * 100.f) + TraceStart;
 		TraceStart.Z -= 10;
-		FTransform SpawnTransform = FTransform(ProjectileRotation, TraceStart);
 		
+		USkeletalMeshComponent* Mesh1P = CharacterOwner->GetMesh1P();
+		FVector SpawnLocation = Mesh1P ? Mesh1P->GetSocketLocation("hand_lSocket") : TraceStart;
+		
+		FTransform SpawnTransform = FTransform(ProjectileRotation, SpawnLocation);
 		ACProjectile* Projectile = GetWorld()->SpawnActorDeferred<ACProjectile>(ProjectileClass, SpawnTransform,
 						CharacterOwner, CharacterOwner, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		
 		Projectile->FinishSpawning(SpawnTransform);
 		Projectile->SetAttackStatus(AttackStatusType);
+
+		if (ShurikenMesh)
+			ShurikenMesh->SetVisibility(false);
+		
+		GetWorld()->GetTimerManager().SetTimer(FireProjectileTimerHandle, this, &UCCombatComponent::FireProjectile_TimerElapsed, FireProjectileDelay);
 	}
+}
+
+void UCCombatComponent::FireProjectile_TimerElapsed()
+{
+	bCanFireProjectile = true;
+	if (ShurikenMesh)
+		ShurikenMesh->SetVisibility(true);
+	
+	FireProjectileTimerHandle.Invalidate();
+}
+
+void UCCombatComponent::ResetSlashAttack()
+{
+	CharacterOwner->SwitchSwordCollision(false);
+	
+	GetWorld()->GetTimerManager().SetTimer(SlashAttackTimerHandle, this, &UCCombatComponent::SlashAttack_TimerElapsed, SlashAttackAnimDelay);
+}
+
+void UCCombatComponent::SlashAttack_TimerElapsed()
+{
+	bIsSlashAttackReady = true;
+	SlashAttackTimerHandle.Invalidate();
 }
 
 bool UCCombatComponent::TryRegisterHit(const FAttackData& AttackData) const
@@ -228,7 +236,7 @@ bool UCCombatComponent::TryRegisterHit(const FAttackData& AttackData) const
 	}
 
 	// @TODO: Potentially claim a kill if we implement an interface (can be used to track certain statistics)
-	OnHitTaken.Broadcast();
+	OnHitTaken.Broadcast(AttackData);
 
 	return true;
 }
@@ -236,4 +244,9 @@ bool UCCombatComponent::TryRegisterHit(const FAttackData& AttackData) const
 UMaterialParameterCollection* UCCombatComponent::GetPlayerMaterialParameters() const
 {
 	return PlayerMaterialParameters;
+}
+
+EAttackStatusType UCCombatComponent::GetAttackStatusType() const
+{
+	return AttackStatusType;
 }

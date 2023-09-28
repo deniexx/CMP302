@@ -35,6 +35,7 @@ ACProjectile::ACProjectile()
 	LifeSpan = 5.f;
 	Pierce = 1;
 	PiercedEnemies = 0;
+	ImpactStrength = 30000.f;
 }
 
 void ACProjectile::PostInitializeComponents()
@@ -65,14 +66,13 @@ void ACProjectile::PlayExtrasOnHit() const
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, GetActorLocation());
 }
 
-void ACProjectile::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp,
-	bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+void ACProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+	Super::NotifyActorBeginOverlap(OtherActor);
 
 	/** Check if we have hit an actor and if they are not ourselves */
-	if (!Other) return;
-	if (Other == GetInstigator()) return;
+	if (!OtherActor) return;
+	if (OtherActor == GetInstigator()) return;
 
 	PlayExtrasOnHit();
 	Destroy();
@@ -80,9 +80,10 @@ void ACProjectile::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimit
 	FAttackData AttackData;
 	AttackData.Instigator = GetInstigator();
 	AttackData.AttackStatusType = AttackStatus;
+	AttackData.ImpactStrength = ImpactStrength;
 	/** This bool can be used to determine whether we successfully hit the character, i.e. if the hit was registered
 	 * meaning they were either the same AttackStatus, or we had a White(GodType) attack status */
-	bool bSuccess = UCGameplayFunctionLibrary::TryRegisterHit(AttackData, Other);
+	bool bSuccess = UCGameplayFunctionLibrary::TryRegisterHit(AttackData, OtherActor);
 	++PiercedEnemies;
 	PlayExtrasOnHit();
 	

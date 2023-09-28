@@ -10,7 +10,7 @@
 class ACProjectile;
 class ACCharacter;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitTaken);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHitTaken, const FAttackData&, AttackData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttackStatusTypeUpdated, EAttackStatusType, PreviousType, EAttackStatusType, NewType);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -38,19 +38,15 @@ public:
 
 	/**
 	 * Initializes the enemies with a Random Attack Status if one has not been set
+	 * @param InShurikenMesh The shuriken mesh of the character
 	 */
-	void Init();
+	void Init(UStaticMeshComponent* InShurikenMesh);
 
 	/**
 	 * This makes it so that we can use the slash attack again, meaning our previous animation has ended
 	 */
 	void ResetSlashAttack();
 
-	/**
-	 * This does the actual reset of the slash attack to be able to be used again
-	 */
-	void SlashAttack_TimerElapsed();
-	
 protected:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -73,7 +69,7 @@ protected:
 
 	/** This is the delay between the animation and the actual firing of the projectile */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	float FireProjectileAnimDelay;
+	float FireProjectileDelay;
 
 	/** This is the delay between slash attacks */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
@@ -82,10 +78,12 @@ protected:
 	/** This is the fire projectile montage */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* FireProjectileMontage;
-	
+
+	/** A timer used to reset and allow you fire the projectile again */
 	UPROPERTY()
 	FTimerHandle FireProjectileTimerHandle;
 
+	/** This is used to prevent spamming the slash attack */
 	UPROPERTY()
 	FTimerHandle SlashAttackTimerHandle;
 
@@ -98,10 +96,16 @@ private:
 	bool CheckCanBeHit(const FAttackData& AttackData) const;
 
 	/**
-	 * Performs the actual firing of the projectile
+	 * This function is called after the fire projectile timer finishes
 	 */
 	UFUNCTION()
 	void FireProjectile_TimerElapsed();
+
+	/**
+	 * This does the actual reset of the slash attack to be able to be used again
+	 */
+	UFUNCTION()
+	void SlashAttack_TimerElapsed();
 
 	/** The previous color of the attack status */
 	UPROPERTY()
@@ -111,8 +115,13 @@ private:
 	UPROPERTY()
 	FLinearColor CurrentAttackStatusColor;
 
+	/** The Character owning this component */
 	UPROPERTY()
 	ACCharacter* CharacterOwner;
+
+	/** Used to cache the shuriken mesh, for ease of use */
+	UPROPERTY()
+	UStaticMeshComponent* ShurikenMesh;
 
 	/** The Lerp Progress */
 	float ColorLerpAlpha;
@@ -120,10 +129,14 @@ private:
 	/** Can we use the slash attack right now */
 	bool bIsSlashAttackReady;
 
+	/** Can we fire a projectile right now */
+	bool bCanFireProjectile;
+
 	/** How fast should the color lerp */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float ColorLerpSpeed;
 
+	/** An array with AnimMontages to pick for the slash attack */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TArray<UAnimMontage*> SlashAttackMontages;
 
@@ -134,8 +147,17 @@ public:
 	 */
 	void UpdateAttackStatusType(EAttackStatusType NewAttackStatusType);
 
+	/**
+	 * Gets the attack status of the character
+	 * @return The current attack status of the character
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	EAttackStatusType GetAttackStatusType() const;
+
+	/**
+	 * Spawns the actual projectile, this is called from an AnimNotify
+	 */
+	void SpawnProjectile();
 
 	/**
 	 * Fires a projectile towards the crosshair
@@ -155,6 +177,10 @@ public:
 	 * @returns Whether the hit was successfully registered
 	 */
 	bool TryRegisterHit(const FAttackData& AttackData) const;
-	
+
+	/**
+	 * Gets the player material parameter collection
+	 * @return The player material parameter collection
+	 */
 	UMaterialParameterCollection* GetPlayerMaterialParameters() const;
 };

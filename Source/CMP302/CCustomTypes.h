@@ -29,4 +29,8 @@ public:
 	/** The actor that instigated this attack */
 	UPROPERTY(BlueprintReadWrite, Category = "Attack Data")
 	AActor* Instigator = nullptr;
+
+	/** The impact strength to be applied when getting hit */
+	UPROPERTY(BlueprintReadWrite, Category = "Attack Data")
+	float ImpactStrength = 300.f;
 };

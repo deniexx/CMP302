@@ -7,6 +7,8 @@
 #include "CCharacterMovementComponent.generated.h"
 
 class AStaticMeshActor;
+class UCDashUserWidget;
+
 /**
  * 
  */
@@ -43,6 +45,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void RefillDash();
 
+	UFUNCTION(BlueprintCallable, Category = "Timers")
+	float GetDashTimerProgress() const;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -70,16 +75,16 @@ private:
 	UStaticMesh* DashIndicatorMesh;
 
 	UPROPERTY()
-	UUserWidget* DashVisualOverlayInstance;
+	UCDashUserWidget* DashVisualOverlayInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> DashVisualOverlayInstanceClass;
+	TSubclassOf<UCDashUserWidget> DashVisualOverlayInstanceClass;
 	
 	/** Dash states */
 	bool bDashConsumed;
 	bool bDashing;
 
-	FVector DashOffset;
+	FVector DashLocation;
 
 	/** Default variables that we can return to */
 	float DefaultAirControl;

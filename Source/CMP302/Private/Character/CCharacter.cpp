@@ -39,6 +39,11 @@ ACCharacter::ACCharacter(const FObjectInitializer& ObjectInitializer)
 	SwordMesh->bCastDynamicShadow = false;
 	SwordMesh->CastShadow = false;
 
+	ShurikenMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShurikenMesh"));
+	ShurikenMesh->SetupAttachment(Mesh1P, "hand_l");
+	ShurikenMesh->bCastDynamicShadow = false;
+	ShurikenMesh->CastShadow = false;
+
 	CombatComponent = CreateDefaultSubobject<UCCombatComponent>(TEXT("CombatComponent"));
 
 	bDead = false;
@@ -53,7 +58,7 @@ void ACCharacter::BeginPlay()
 	ExtendedMovementComponent = GetCharacterMovement<UCCharacterMovementComponent>();
 	
 	CombatComponent->OnHitTaken.AddDynamic(this, &ACCharacter::OnHitTaken);
-	CombatComponent->Init();
+	CombatComponent->Init(ShurikenMesh);
 	
 	USkeletalMeshComponent* MeshComponent = Mesh1P->GetSkeletalMeshAsset() ? Mesh1P : GetMesh();
 	const int32 NumMaterials = MeshComponent->GetNumMaterials();
@@ -61,6 +66,9 @@ void ACCharacter::BeginPlay()
 	{
 		MeshDynamicMaterials.Add(MeshComponent->CreateDynamicMaterialInstance(i, MeshComponent->GetMaterial(i)));
 	}
+
+	SwordMesh->CreateDynamicMaterialInstance(0, SwordMesh->GetMaterial(0));
+	SwordMesh->CreateDynamicMaterialInstance(1, SwordMesh->GetMaterial(1));
 
 	SwordMesh->IgnoreActorWhenMoving(this, true);
 	SwordMesh->OnComponentBeginOverlap.AddDynamic(this, &ACCharacter::OnSwordHit);
@@ -70,6 +78,12 @@ void ACCharacter::BeginPlay()
 	{
 		PlayerController->SetIgnoreLookInput(true);
 		PlayerController->SetIgnoreMoveInput(true);
+	}
+	else
+	{
+		MeshDynamicMaterials[1]->SetVectorParameterValue("LogoLayer0_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
+		MeshDynamicMaterials[1]->SetVectorParameterValue("LogoLayer1_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
+		MeshDynamicMaterials[1]->SetVectorParameterValue("LogoLayer2_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
 	}
 }
 
@@ -214,13 +228,33 @@ void ACCharacter::SlashAttack(const FInputActionValue& Value)
 	CombatComponent->SlashAttack();
 }
 
-void ACCharacter::OnHitTaken()
+void ACCharacter::OnHitTaken(const FAttackData& AttackData)
 {
-	if (AAIController* AiController = GetController<AAIController>())
+	if (APlayerController* PlayerController = GetController<APlayerController>())
+		return;
+
+	
+	bDead = true;
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+	GetCharacterMovement()->DisableMovement();
+	
+	if (AttackData.Instigator)
 	{
-		bDead = true;
-		AiController->Destroy();
+		FVector ImpulseDirection = (GetActorLocation() - AttackData.Instigator->GetActorLocation());
+		ImpulseDirection.Normalize();
+		GetMesh()->AddImpulse(ImpulseDirection * AttackData.ImpactStrength);
 	}
+
+	OnHitTaken_BP(AttackData);
+}
+
+void ACCharacter::OnHitTaken_BP_Implementation(const FAttackData& AttackData)
+{
+	
 }
 
 void ACCharacter::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -228,5 +262,6 @@ void ACCharacter::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* O
 	FAttackData AttackData;
 	AttackData.Instigator = this;
 	AttackData.AttackStatusType = CombatComponent->GetAttackStatusType();
+	AttackData.ImpactStrength = 30000.f;
 	UCGameplayFunctionLibrary::TryRegisterHit(AttackData, OtherActor);
 }

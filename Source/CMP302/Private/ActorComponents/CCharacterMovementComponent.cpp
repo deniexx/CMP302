@@ -4,9 +4,11 @@
 #include "ActorComponents/CCharacterMovementComponent.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/CDashUserWidget.h"
 
 UCCharacterMovementComponent::UCCharacterMovementComponent()
 {
@@ -38,27 +40,34 @@ void UCCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick Tic
 		ACharacter* Owner = GetCharacterOwner();
 		FVector TraceStart = Owner->GetPawnViewLocation();
 		FVector TraceEnd = TraceStart + (Owner->GetControlRotation().Vector() * DashDistance);
-		FVector DashLocation = TraceEnd;
 		FVector IndicatorLocation = TraceEnd;
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(GetOwner());
-		
+
+		const float ScaledCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 		if (bHit)
 		{
-			DashLocation = HitResult.ImpactPoint;
+			TraceEnd = HitResult.ImpactPoint;
 			/** Do one more line trace in case to check for the bottom location of the Indicator */
-			FVector Down = DashLocation;
+			FVector Down = TraceEnd;
+			FCollisionShape Shape;
+			Shape.SetCapsule(CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius(), CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
 			Down.Z -= 10000000.f;
-			if (GetWorld()->LineTraceSingleByChannel(HitResult, DashLocation, Down, ECC_Vehicle, QueryParams))
+			if (GetWorld()->SweepSingleByChannel(HitResult, TraceEnd, Down, FQuat::Identity, ECC_Visibility, Shape, QueryParams))
 			{
 				IndicatorLocation = HitResult.ImpactPoint;
+				DashLocation = HitResult.ImpactPoint + FVector(0.f, 0.f, ScaledCapsuleHalfHeight);
 			}
-			else IndicatorLocation.Z -= 96.f; 
 		}
+		else
+		{
+			DashLocation = TraceEnd;
+			IndicatorLocation.Z -= ScaledCapsuleHalfHeight;
+		}
+
 		
-		DashOffset = DashLocation - TraceStart;
 		FRotator IndicatorRotation = Owner->GetActorForwardVector().Rotation() + FRotator(0.0f, -90.f, 0.f);
 		DashIndicatorActor->SetActorLocationAndRotation(IndicatorLocation, IndicatorRotation);
 	}
@@ -86,7 +95,8 @@ void UCCharacterMovementComponent::BeginDash()
 	if (!DashVisualOverlayInstance)
 	{
 		ensureAlways(DashVisualOverlayInstanceClass);
-		DashVisualOverlayInstance = CreateWidget(CharacterOwner->GetController<APlayerController>(), DashVisualOverlayInstanceClass);
+		DashVisualOverlayInstance = CreateWidget<UCDashUserWidget>(CharacterOwner->GetController<APlayerController>(), DashVisualOverlayInstanceClass);
+		DashVisualOverlayInstance->BindMovementComponent(this);
 	}
 
 	DashVisualOverlayInstance->AddToViewport();
@@ -97,31 +107,30 @@ void UCCharacterMovementComponent::BeginDash()
 
 void UCCharacterMovementComponent::Dash()
 {
-	GetOwner()->AddActorWorldOffset(DashOffset, true, nullptr, ETeleportType::TeleportPhysics);
-	SetMovementMode(MOVE_Falling);
+	GetOwner()->SetActorLocation(DashLocation, true, nullptr, ETeleportType::ResetPhysics);
 }
 
 void UCCharacterMovementComponent::ResetDash()
 {
-	if (bDashing || bDashConsumed)
-	{
-		AirControl = DefaultAirControl;
-		MaxWalkSpeed = DefaultMaxWalkSpeed;
-		MaxAcceleration = DefaultMaxAcceleration;
-		bDashing = false;
+	AirControl = DefaultAirControl;
+	MaxWalkSpeed = DefaultMaxWalkSpeed;
+	MaxAcceleration = DefaultMaxAcceleration;
+	bDashing = false;
+	
+	if (DashIndicatorActor)
 		DashIndicatorActor->SetActorHiddenInGame(true);
 
-		if (DashVisualOverlayInstance)
-			DashVisualOverlayInstance->RemoveFromParent();
-		
-		UGameplayStatics::SetGlobalTimeDilation(GetOwner(), 1.f);
+	if (DashVisualOverlayInstance)
+		DashVisualOverlayInstance->RemoveFromParent();
+	
+	UGameplayStatics::SetGlobalTimeDilation(GetOwner(), 1.f);
 
-		if (DashTimerHandle.IsValid())
-		{
-			GetWorld()->GetTimerManager().ClearTimer(DashTimerHandle);
-			DashTimerHandle.Invalidate();
-		}
+	if (DashTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(DashTimerHandle);
 	}
+
+	DashTimerHandle.Invalidate();
 }
 
 void UCCharacterMovementComponent::EndDash()
@@ -135,14 +144,19 @@ void UCCharacterMovementComponent::EndDash()
 
 void UCCharacterMovementComponent::InterruptDash()
 {
-	ResetDash();
 	RefillDash();
 }
 
 void UCCharacterMovementComponent::RefillDash()
 {
-	bDashConsumed = false;
 	ResetDash();
+	bDashConsumed = false;
+}
+
+float UCCharacterMovementComponent::GetDashTimerProgress() const
+{
+	const float Remaining = GetWorld()->GetTimerManager().GetTimerRemaining(DashTimerHandle);
+	return Remaining / DashTimeSlowDuration;
 }
 
 void UCCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)

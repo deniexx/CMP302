@@ -51,6 +51,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Stats")
 	uint8 Pierce;
 
+	UPROPERTY(EditAnywhere, Category = "Stats")
+	float ImpactStrength;
+
 	/** How many enemies have been pierced */
 	uint8 PiercedEnemies;
 
@@ -83,7 +86,7 @@ protected:
 	 * Plays the visual and sound extras for this projectile upon colliding(hitting) with something
 	 */
 	void PlayExtrasOnHit() const;
-
-	/* In-built function that is called when collision happens */
-	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+	
+	/* In-built function that is called when an overlap happens */
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 };

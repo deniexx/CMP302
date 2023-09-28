@@ -50,6 +50,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* SwordMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* ShurikenMesh;
+	
 	/* -----------------------------------------------------
 	 *						     PROPERTIES
 	 * -----------------------------------------------------
@@ -118,10 +121,13 @@ protected:
 	UFUNCTION()
 	void SlashAttack(const FInputActionValue& Value);
 
+	UFUNCTION(BlueprintNativeEvent)
+	void OnHitTaken_BP(const FAttackData& AttackData);
+
 private:
 
 	UFUNCTION()
-	void OnHitTaken();
+	void OnHitTaken(const FAttackData& AttackData);
 
 	UFUNCTION()
 	void OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
