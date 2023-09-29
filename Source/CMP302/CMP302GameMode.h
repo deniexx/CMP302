@@ -12,7 +12,11 @@ class ACMP302GameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	
 	ACMP302GameMode();
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void RespawnAllEnemies();
 };
 
 

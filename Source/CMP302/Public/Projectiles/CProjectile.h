@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "CProjectile.generated.h"
 
+class UNiagaraSystem;
 class UProjectileMovementComponent;
 class USphereComponent;
 
@@ -35,14 +36,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovementComponent;
-
-	/** Particle effect component to be used during flight */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UParticleSystemComponent* EffectComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* StaticMesh;
-
 	/** How long should the projectile fly for */
 	UPROPERTY(EditAnywhere, Category = "Stats")
 	float LifeSpan;
@@ -89,4 +83,6 @@ protected:
 	
 	/* In-built function that is called when an overlap happens */
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 };

@@ -9,6 +9,7 @@
 #include "ActorComponents/CCombatComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
 
@@ -54,12 +55,11 @@ ACCharacter::ACCharacter(const FObjectInitializer& ObjectInitializer)
 void ACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ExtendedMovementComponent = GetCharacterMovement<UCCharacterMovementComponent>();
 	
-	CombatComponent->OnHitTaken.AddDynamic(this, &ACCharacter::OnHitTaken);
+	MeshTransform = GetMesh()->GetComponentTransform();
 	CombatComponent->Init(ShurikenMesh);
-	
+	CombatComponent->OnHitTaken.AddDynamic(this, &ACCharacter::OnHitTaken);
+
 	USkeletalMeshComponent* MeshComponent = Mesh1P->GetSkeletalMeshAsset() ? Mesh1P : GetMesh();
 	const int32 NumMaterials = MeshComponent->GetNumMaterials();
 	for (int i = 0; i < NumMaterials; ++i)
@@ -67,24 +67,29 @@ void ACCharacter::BeginPlay()
 		MeshDynamicMaterials.Add(MeshComponent->CreateDynamicMaterialInstance(i, MeshComponent->GetMaterial(i)));
 	}
 
-	SwordMesh->CreateDynamicMaterialInstance(0, SwordMesh->GetMaterial(0));
-	SwordMesh->CreateDynamicMaterialInstance(1, SwordMesh->GetMaterial(1));
-
-	SwordMesh->IgnoreActorWhenMoving(this, true);
-	SwordMesh->OnComponentBeginOverlap.AddDynamic(this, &ACCharacter::OnSwordHit);
-	SwitchSwordCollision(false);
-	
 	if (APlayerController* PlayerController = GetController<APlayerController>())
 	{
 		PlayerController->SetIgnoreLookInput(true);
 		PlayerController->SetIgnoreMoveInput(true);
+		ExtendedMovementComponent = GetCharacterMovement<UCCharacterMovementComponent>();
+		SwordMesh->CreateDynamicMaterialInstance(0, SwordMesh->GetMaterial(0));
+		SwordMesh->CreateDynamicMaterialInstance(1, SwordMesh->GetMaterial(1));
+
+		SwordMesh->IgnoreActorWhenMoving(this, true);
+		SwordMesh->OnComponentBeginOverlap.AddDynamic(this, &ACCharacter::OnSwordHit);
+		SwitchSwordCollision(false);
 	}
 	else
 	{
-		MeshDynamicMaterials[1]->SetVectorParameterValue("LogoLayer0_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
-		MeshDynamicMaterials[1]->SetVectorParameterValue("LogoLayer1_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
-		MeshDynamicMaterials[1]->SetVectorParameterValue("LogoLayer2_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
+		for (UMaterialInstanceDynamic* Material : MeshDynamicMaterials)
+		{
+			Material->SetVectorParameterValue("LogoLayer0_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
+			Material->SetVectorParameterValue("LogoLayer1_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
+			Material->SetVectorParameterValue("LogoLayer2_Color", UCGameplayFunctionLibrary::GetColorFromAttackStatus(CombatComponent->GetAttackStatusType()));
+		}
 	}
+	
+	ReadyActor();
 }
 
 void ACCharacter::Tick(float DeltaSeconds)
@@ -110,7 +115,8 @@ void ACCharacter::Tick(float DeltaSeconds)
 	}
 	else if (bDead && FMath::IsNearlyZero(AlphaTarget))
 	{
-		Destroy();
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionProfileName("NoCollision");
 	}
 	else if (FMath::IsNearlyEqual(AppearanceAlpha, 1))
 	{
@@ -124,6 +130,8 @@ void ACCharacter::Tick(float DeltaSeconds)
 			}
 		}
 	}
+
+	TickAI(DeltaSeconds);
 }
 
 // Called to bind functionality to input
@@ -135,8 +143,8 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	{
 		// Jumping
 		// @TODO: Implement a custom character movement that can handle wall running and vaulting
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACCharacter::BeginTraversal);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACCharacter::EndTraversal);
 
 		// Move and Look actions
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACCharacter::Move);
@@ -160,6 +168,31 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 void ACCharacter::SwitchSwordCollision(bool bEnabled) const
 {
 	SwordMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+}
+
+void ACCharacter::ReadyActor()
+{
+	bDead = false;
+	AppearanceAlpha = 0.f;
+
+	const APlayerController* PlayerController = GetController<APlayerController>();
+	if (!PlayerController)
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionProfileName("CharacterMesh");
+		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+		GetMesh()->SetWorldTransform(MeshTransform);
+		GetMesh()->SetMobility(EComponentMobility::Movable);
+		
+		InitAI();
+	}
+}
+
+bool ACCharacter::IsDead() const
+{
+	return bDead;
 }
 
 void ACCharacter::Move(const FInputActionValue& Value)
@@ -228,6 +261,16 @@ void ACCharacter::SlashAttack(const FInputActionValue& Value)
 	CombatComponent->SlashAttack();
 }
 
+void ACCharacter::BeginTraversal(const FInputActionValue& Value)
+{
+	ExtendedMovementComponent->BeginTraversal();
+}
+
+void ACCharacter::EndTraversal(const FInputActionValue& Value)
+{
+	StopJumping();
+}
+
 void ACCharacter::OnHitTaken(const FAttackData& AttackData)
 {
 	if (APlayerController* PlayerController = GetController<APlayerController>())
@@ -254,7 +297,14 @@ void ACCharacter::OnHitTaken(const FAttackData& AttackData)
 
 void ACCharacter::OnHitTaken_BP_Implementation(const FAttackData& AttackData)
 {
-	
+}
+
+void ACCharacter::InitAI_Implementation()
+{
+}
+
+void ACCharacter::TickAI_Implementation(float DeltaSeconds)
+{
 }
 
 void ACCharacter::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)

@@ -11,7 +11,7 @@
 static TAutoConsoleVariable<int32> CVarGodMode(
 	TEXT("GodMode"),
 	0,
-	TEXT("Draws debug info about traversal")
+	TEXT("Makes the player unkillable")
 	TEXT(" 0: Can not be hit (God Mode)/n")
 	TEXT(" 1: Can be hit (Normal Mode)/n"),
 	ECVF_Cheat
@@ -185,16 +185,22 @@ void UCCombatComponent::SpawnProjectile()
 		FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - TraceStart).Rotator();
 		TraceStart = (CharacterOwner->GetActorForwardVector() * 100.f) + TraceStart;
 		TraceStart.Z -= 10;
+
+		const APlayerController* Controller = CharacterOwner ? CharacterOwner->GetController<APlayerController>() : nullptr;
+		const bool bIsPlayerControlled = Controller != nullptr;
 		
 		USkeletalMeshComponent* Mesh1P = CharacterOwner->GetMesh1P();
-		FVector SpawnLocation = Mesh1P ? Mesh1P->GetSocketLocation("hand_lSocket") : TraceStart;
+		FVector Offset = CharacterOwner->GetActorForwardVector() * 40.f;
+		FVector SpawnLocation = bIsPlayerControlled ? Mesh1P->GetSocketLocation("hand_lSocket") : TraceStart + Offset;
 		
 		FTransform SpawnTransform = FTransform(ProjectileRotation, SpawnLocation);
 		ACProjectile* Projectile = GetWorld()->SpawnActorDeferred<ACProjectile>(ProjectileClass, SpawnTransform,
-						CharacterOwner, CharacterOwner, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+						CharacterOwner, CharacterOwner, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 		
 		Projectile->FinishSpawning(SpawnTransform);
-		Projectile->SetAttackStatus(AttackStatusType);
+		
+		const EAttackStatusType StatusToSet = bIsPlayerControlled ? AttackStatusType : EAttackStatusType::Enemy;
+		Projectile->SetAttackStatus(StatusToSet);
 
 		if (ShurikenMesh)
 			ShurikenMesh->SetVisibility(false);

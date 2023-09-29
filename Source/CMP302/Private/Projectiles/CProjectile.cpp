@@ -8,7 +8,8 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Particles/ParticleSystemComponent.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
 
 // Sets default values
@@ -20,9 +21,6 @@ ACProjectile::ACProjectile()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetCollisionProfileName("Projectile");
 	SetRootComponent(SphereComponent);
-	
-	EffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("EffectComponent"));
-	EffectComponent->SetupAttachment(RootComponent);
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->InitialSpeed = 2000.f;
@@ -92,4 +90,13 @@ void ACProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 	{
 		Destroy();
 	}
+}
+
+void ACProjectile::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp,
+	bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+
+	PlayExtrasOnHit();
+	Destroy();
 }

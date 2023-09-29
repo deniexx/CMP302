@@ -7,6 +7,7 @@
 
 #include "CCharacter.generated.h"
 
+class USpringArmComponent;
 class UCCharacterMovementComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
@@ -39,7 +40,7 @@ private:
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
-
+	
 	/** Combat Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UCCombatComponent* CombatComponent;
@@ -90,6 +91,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SlashAction;
 
+	FTransform MeshTransform;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -121,8 +124,20 @@ protected:
 	UFUNCTION()
 	void SlashAttack(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void BeginTraversal(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void EndTraversal(const FInputActionValue& Value);
+
 	UFUNCTION(BlueprintNativeEvent)
 	void OnHitTaken_BP(const FAttackData& AttackData);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void InitAI();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void TickAI(float DeltaSeconds);
 
 private:
 
@@ -155,4 +170,15 @@ public:
 	 * @param bEnabled Should the collision be enabled
 	 */
 	void SwitchSwordCollision(bool bEnabled) const;
+
+	/**
+	 * Sets up the actor to be ready, this can include reviving its
+	 */
+	void ReadyActor();
+
+	/**
+	 * Check if the actor is dead
+	 * @return Whether the actor is dead
+	 */
+	bool IsDead() const;
 };

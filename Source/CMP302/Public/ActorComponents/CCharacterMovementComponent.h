@@ -45,8 +45,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void RefillDash();
 
+	/**
+	 * Gets the remaining duration of the dash timer in a ratio of 0 to 1
+	 * @return The remaining duration in a ratio of 0 to 1
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Timers")
 	float GetDashTimerProgress() const;
+
+	/**
+	 * This is used to jump/wall run
+	 */
+	void BeginTraversal();
 
 protected:
 
@@ -62,11 +71,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float DashDistance;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	TArray<TEnumAsByte<EObjectTypeQuery>> WallRunObjectTypes;
+
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
-
 private:
-
+	
+	/********************************************************************************
+	*										DASH									*
+	*********************************************************************************/
 	/** Dash Visual Effects */
 	UPROPERTY()
 	AStaticMeshActor* DashIndicatorActor;
@@ -79,6 +93,24 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UCDashUserWidget> DashVisualOverlayInstanceClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wall Run Visuals", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UCameraModifier> LeftWallRunCameraModifier;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wall Run Visuals", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UCameraModifier> RightWallRunCameraModifier;
+
+	UPROPERTY()
+	UCameraModifier* AppliedCameraModifier;
+
+	UPROPERTY()
+	FHitResult WallRunHit;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float WallRunJumpOffVelocity;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float VelocityAfterDash;
 	
 	/** Dash states */
 	bool bDashConsumed;
@@ -100,6 +132,23 @@ private:
 	 * Here we reset the dash variables, but do not reset bDashConsumed, to do that we need to use RefillDash()
 	 */
 	void ResetDash();
-	
+
+	UPROPERTY()
 	FTimerHandle DashTimerHandle;
+
+	 /********************************************************************************
+	  *										WALL RUN								 *
+	  *********************************************************************************/
+	void BeginWallRun();
+
+	void EndWallRun();
+
+	UFUNCTION()
+	void OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	bool FindRunnableWall(FHitResult& OutWallHit) const;
+
+	bool IsWallOnTheLeft(const FHitResult& InWallHit) const;
+
+	bool bWallRunning;
 };
