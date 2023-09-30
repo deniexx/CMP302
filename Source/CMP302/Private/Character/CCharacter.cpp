@@ -2,14 +2,12 @@
 
 #include "CMP302/Public/Character/CCharacter.h"
 
-#include "AIController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ActorComponents/CCharacterMovementComponent.h"
 #include "ActorComponents/CCombatComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
 
