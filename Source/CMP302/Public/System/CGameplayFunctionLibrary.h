@@ -25,7 +25,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GameplayFunctionLibrary")
 	static FLinearColor GetColorFromAttackStatus(EAttackStatusType AttackStatus);
-
+	
 	/**
 	 * Performs an attempt to register a hit on the target actor
 	 * @param AttackData AttackData to be used for hit registration
@@ -34,4 +34,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GameplayFunctionLibrary")
 	static bool TryRegisterHit(const FAttackData& AttackData, AActor* TargetActor);
+
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
+	static ACProjectile* SpawnProjectile(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character);
 };

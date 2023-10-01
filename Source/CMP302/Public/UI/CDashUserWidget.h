@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CDashUserWidget.generated.h"
 
+class UCAction_Dash;
 class UCCharacterMovementComponent;
 /**
  * 
@@ -17,10 +18,10 @@ class CMP302_API UCDashUserWidget : public UUserWidget
 	
 public:
 	/**
-	 * Binds the movement component to this widget, so that we can use the remaining time on the dash here
-	 * @param InMovementComponent Binds the movement component to this widget
+	 * Binds the dash action to this widget, so that we can use the remaining time on the dash here
+	 * @param InDashAction  Dash action to be bound to this widget
 	 */
-	void BindMovementComponent(UCCharacterMovementComponent* InMovementComponent);
+	void BindDashAction(UCAction_Dash* InDashAction);
 	
 protected:
 
@@ -33,5 +34,5 @@ protected:
 private:
 
 	UPROPERTY()
-	UCCharacterMovementComponent* MovementComponent;
+	UCAction_Dash* DashAction;
 };

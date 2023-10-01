@@ -3,13 +3,10 @@
 
 #include "Projectiles/CProjectile.h"
 
-#include "ActorComponents/CCombatComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraSystem.h"
-#include "NiagaraFunctionLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
 
 // Sets default values

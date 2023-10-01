@@ -3,7 +3,9 @@
 
 #include "System/CGameplayFunctionLibrary.h"
 
-#include "ActorComponents/CCombatComponent.h"
+#include "ActorComponents/CCombatStatusComponent.h"
+#include "Character/CCommonCharacter.h"
+#include "Projectiles/CProjectile.h"
 
 FLinearColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusType AttackStatus)
 {
@@ -36,11 +38,50 @@ FLinearColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusTy
 
 bool UCGameplayFunctionLibrary::TryRegisterHit(const FAttackData& AttackData, AActor* TargetActor)
 {
-	UCCombatComponent* CombatComponent = TargetActor ? UCCombatComponent::GetCombatComponent(TargetActor) : nullptr;
-	if (CombatComponent)
+	if (const UCCombatStatusComponent* CombatComponent = TargetActor ? UCCombatStatusComponent::GetCombatStatusComponent(TargetActor) : nullptr)
 	{
 		return CombatComponent->TryRegisterHit(AttackData);
 	}
 
 	return false;
+}
+
+ACProjectile* UCGameplayFunctionLibrary::SpawnProjectile(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass,
+                                                         ACCommonCharacter* Character)
+{
+	if (!ensureAlways(ProjectileClass) || !Character) return nullptr;
+	
+	FCollisionShape Shape;
+	Shape.SetSphere(20.f);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(Character);
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+		
+	FVector TraceStart = Character->GetPawnViewLocation();
+	FVector TraceEnd = TraceStart + (Character->GetControlRotation().Vector() * 5000);
+
+	FHitResult HitResult;
+	if (WorldContextObject->GetWorld()->SweepSingleByObjectType(HitResult, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
+	{
+		TraceEnd = HitResult.ImpactPoint;
+	}
+		
+	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - TraceStart).Rotator();
+	TraceStart = (Character->GetActorForwardVector() * 100.f) + TraceStart;
+	TraceStart.Z -= 10;
+		
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	FVector SpawnLocation = Mesh->GetSocketLocation("FireProjectileSocket");
+		
+	FTransform SpawnTransform = FTransform(ProjectileRotation, SpawnLocation);
+	ACProjectile* Projectile = WorldContextObject->GetWorld()->SpawnActorDeferred<ACProjectile>(ProjectileClass, SpawnTransform,
+					Character, Character, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		
+	Projectile->FinishSpawning(SpawnTransform);
+	return Projectile;
 }

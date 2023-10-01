@@ -3,7 +3,7 @@
 #include "CMP302GameMode.h"
 
 #include "EngineUtils.h"
-#include "Character/CEnemyCharacter.h"
+#include "Character/CAICharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ACMP302GameMode::ACMP302GameMode()
@@ -17,9 +17,9 @@ ACMP302GameMode::ACMP302GameMode()
 
 void ACMP302GameMode::RespawnAllEnemies()
 {
-	for (TActorIterator<ACEnemyCharacter> It(GetWorld()); It; ++It)
+	for (TActorIterator<ACAICharacter> It(GetWorld()); It; ++It)
 	{
-		ACEnemyCharacter* Bot = *It;
+		ACAICharacter* Bot = *It;
 
 		Bot->ReadyActor();
 	}

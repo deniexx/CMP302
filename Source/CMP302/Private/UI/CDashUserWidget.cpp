@@ -3,20 +3,21 @@
 
 #include "UI/CDashUserWidget.h"
 
-#include "ActorComponents/CCharacterMovementComponent.h"
+#include "Actions/CAction_Dash.h"
 #include "Kismet/KismetMaterialLibrary.h"
 
-void UCDashUserWidget::BindMovementComponent(UCCharacterMovementComponent* InMovementComponent)
+
+void UCDashUserWidget::BindDashAction(UCAction_Dash* InDashAction)
 {
-	MovementComponent = InMovementComponent;
+	DashAction = InDashAction;
 }
 
 void UCDashUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (MovementComponent)
+	if (DashAction)
 	{
-		UKismetMaterialLibrary::SetScalarParameterValue(this, UIParameters, "DashTimerProgress", MovementComponent->GetDashTimerProgress());
+		UKismetMaterialLibrary::SetScalarParameterValue(this, UIParameters, "DashTimerProgress", DashAction->GetDashTimerProgress());
 	}
 }

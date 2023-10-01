@@ -3,7 +3,8 @@
 
 #include "System/CCheatManager.h"
 
-#include "ActorComponents/CCombatComponent.h"
+#include "ActorComponents/CCombatStatusComponent.h"
+
 
 void UCCheatManager::HitTarget(EAttackStatusType AttackStatus)
 {
@@ -12,7 +13,7 @@ void UCCheatManager::HitTarget(EAttackStatusType AttackStatus)
 		FHitResult TargetHitResult;
 		const AActor* TargetActor = GetTarget(PlayerController, TargetHitResult);
 
-		if (UCCombatComponent* CombatComponent = UCCombatComponent::GetCombatComponent(TargetActor))
+		if (const UCCombatStatusComponent* CombatComponent = UCCombatStatusComponent::GetCombatStatusComponent(TargetActor))
 		{
 			FAttackData AttackData;
 			AttackData.AttackStatusType = AttackStatus;
