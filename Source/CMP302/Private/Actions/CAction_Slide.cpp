@@ -8,6 +8,7 @@
 #include "Character/CCommonCharacter.h"
 #include "Character/CPlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 void UCAction_Slide::OnActionAdded_Implementation(AActor* InInstigator)
 {
@@ -87,6 +88,7 @@ void UCAction_Slide::StartAction_Implementation(AActor* InInstigator)
 	bCrouching = true;
 
 	DefaultMaxWalkSpeed = MovementComponent->MaxWalkSpeed;
+	MaxSlideSpeed = DefaultMaxWalkSpeed + 100.f;
 	MovementComponent->MaxWalkSpeed = MovementComponent->MaxWalkSpeedCrouched;
 	const float HorizontalVelocity = FMath::Abs(MovementComponent->Velocity.X) + FMath::Abs(MovementComponent->Velocity.Y);
 	if (HorizontalVelocity > 100.f)
@@ -113,6 +115,9 @@ bool UCAction_Slide::CanStart_Implementation(AActor* InInstigator)
 void UCAction_Slide::BeginSliding()
 {
 	bSliding = true;
+
+	const FString Message = FString::Printf(TEXT("%s engaged."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 }
 
 bool UCAction_Slide::IsFloorDownwardSlope(const FVector& FloorNormal)
@@ -146,6 +151,11 @@ bool UCAction_Slide::IsOnGround() const
 
 void UCAction_Slide::EndSliding()
 {
+	if (!bSliding) return;
+	
 	CurrentSlideDuration = 0.f;
 	bSliding = false;
+
+	const FString Message = FString::Printf(TEXT("%s disengaged."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 }

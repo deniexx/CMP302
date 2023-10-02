@@ -5,6 +5,7 @@
 
 #include "CLogChannels.h"
 #include "ActorComponents/CActionComponent.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 void UCAction::Initialize(UCActionComponent* NewActionComponent)
 {
@@ -65,6 +66,11 @@ UWorld* UCAction::GetWorld() const
 	return nullptr;
 }
 
+FString UCAction::GetInCooldownMessage() const
+{
+	return FString::Printf(TEXT("%ls is not ready."), *ActionName.ToString());
+}
+
 UCActionComponent* UCAction::GetOwningComponent() const
 {
 	return ActionComponent;
@@ -77,7 +83,13 @@ void UCAction::OnCooldownTimer_Elapsed()
 
 bool UCAction::CanStart_Implementation(AActor* InInstigator)
 {
-	if (IsRunning() || IsInCooldown()) return false;
+	if (IsRunning()) return false;
+
+	if (IsInCooldown())
+	{
+		UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), GetInCooldownMessage());
+		return false;
+	}
 
 	const UCActionComponent* Component = GetOwningComponent();
 

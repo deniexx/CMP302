@@ -100,6 +100,8 @@ public:
 	
 protected:
 
+	virtual FString GetInCooldownMessage() const;
+
 	/** Cached Action Component */
 	UPROPERTY()
 	UCActionComponent* ActionComponent;

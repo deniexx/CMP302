@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "CGameplayFunctionLibrary.generated.h"
 
+class UCStatusReportSubsystem;
 /**
  * 
  */
@@ -38,4 +39,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static ACProjectile* SpawnProjectile(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character);
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
+	static UCStatusReportSubsystem* GetStatusReportSubsystem(const UObject* WorldContextObject);
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
+	static void AddStatusReportMessage(const UObject* WorldContextObject, const FString& Message);
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
+	static void UpdateStatusImage(const UObject* WorldContextObject, UTexture2D* StatusTexture);
 };

@@ -46,6 +46,8 @@ void UCAction_Sword::StartAction_Implementation(AActor* InInstigator)
 	{
 		SwordMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		Character->PlayAnimMontage(AnimMontage);
+
+		SnapToTargetIfPossible(Character);
 	}
 }
 
@@ -67,4 +69,37 @@ void UCAction_Sword::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor
 	AttackData.AttackStatusType = CombatStatusComponent->GetAttackStatusType();
 	AttackData.ImpactStrength = 30000.f;
 	UCGameplayFunctionLibrary::TryRegisterHit(AttackData, OtherActor);
+}
+
+void UCAction_Sword::SnapToTargetIfPossible(ACCommonCharacter* Character) const
+{
+	FVector TraceStart = Character->GetPawnViewLocation();
+	FVector TraceEnd = TraceStart + (Character->GetControlRotation().Vector() * MaxSnapDistance);
+	FCollisionQueryParams QueryParams;
+
+	FCollisionShape Shape;
+	Shape.SetSphere(20.f);
+	QueryParams.AddIgnoredActor(Character);
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	TArray<FHitResult> HitResults;
+		
+	if (GetWorld()->SweepMultiByObjectType(HitResults, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, QueryParams))
+	{
+		for (const FHitResult& HitResult : HitResults)
+		{
+			FVector DirectionVector = HitResult.ImpactPoint - TraceStart;
+			if (DirectionVector.Length() > MinSnapDistance)
+			{
+				FVector EndLocation = HitResult.ImpactPoint - (DirectionVector.GetSafeNormal() * 30.f);
+				FVector ActorLocation = Character->GetActorLocation();
+				if (EndLocation.Z > ActorLocation.Z)
+					EndLocation.Z = ActorLocation.Z;
+				Character->SetActorLocation(EndLocation, true);
+				break;
+			}
+		}
+	}
 }

@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 static TAutoConsoleVariable<int32> CVarShowDebugWallRun(
 	TEXT("ShowDebugWallRun"),
@@ -95,6 +96,10 @@ void UCAction_WallRun::TickAction_Implementation(float DeltaTime)
 	}
 }
 
+FString UCAction_WallRun::GetInCooldownMessage() const
+{
+	return FString::Printf(TEXT("%ls is refueling"), *ActionName.ToString());
+}
 
 void UCAction_WallRun::BeginWallRun()
 {
@@ -117,6 +122,9 @@ void UCAction_WallRun::BeginWallRun()
 	MovementComponent->GravityScale = 0.2f;
 
 	bWallRunning = true;
+
+	const FString Message = FString::Printf(TEXT("%s engaged."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 }
 
 void UCAction_WallRun::EndWallRun()
@@ -133,6 +141,9 @@ void UCAction_WallRun::EndWallRun()
 	
 	MovementComponent->GravityScale = 1.f;
 	bWallRunning = false;
+
+	const FString Message = FString::Printf(TEXT("%s disengaged."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 }
 
 bool UCAction_WallRun::FindRunnableWall(FHitResult& OutWallHit) const

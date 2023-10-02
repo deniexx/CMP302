@@ -43,8 +43,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Forces")
 	float OnGroundSlideDuration;
-
-	UPROPERTY(EditAnywhere, Category = "Forces")
+	
 	float MaxSlideSpeed;
 
 	UPROPERTY()

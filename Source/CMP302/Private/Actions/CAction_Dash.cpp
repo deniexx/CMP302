@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "System/CGameplayFunctionLibrary.h"
 #include "UI/CDashUserWidget.h"
 
 void UCAction_Dash::OnActionAdded_Implementation(AActor* InInstigator)
@@ -73,14 +74,7 @@ void UCAction_Dash::TickAction_Implementation(float DeltaTime)
 void UCAction_Dash::StartAction_Implementation(AActor* InInstigator)
 {
 	Super::StartAction_Implementation(InInstigator);
-
-	if (DashTimerHandle.IsValid())
-	{
-		bDashing = false;
-		StopAction(InInstigator);
-		return;
-	}
-
+	
 	bDashing = true;
 	MovementComponent->AirControl = 1.f;
 	MovementComponent->MaxWalkSpeed = 2 * MovementComponent->MaxWalkSpeed;
@@ -105,6 +99,8 @@ void UCAction_Dash::StartAction_Implementation(AActor* InInstigator)
 	DashVisualOverlayInstance->AddToViewport();
 	DashIndicatorActor->SetActorHiddenInGame(false);
 
+	const FString Message = FString::Printf(TEXT("%s engaged."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 	GetWorld()->GetTimerManager().SetTimer(DashTimerHandle, this, &UCAction_Dash::InterruptDash, DashTimeSlowDuration);
 }
 
@@ -133,19 +129,25 @@ void UCAction_Dash::InterruptDash()
 	{
 		StopAction(Character);
 	}
+
+	const FString Message = FString::Printf(TEXT("%s malfunctioned."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 }
 
 void UCAction_Dash::Dash()
 {
+	bDashing = false;
 	Character->SetActorLocation(DashLocation, false, nullptr, ETeleportType::ResetPhysics);
 	const FVector VelocityDirection = Character->GetActorForwardVector();
 	MovementComponent->Velocity = VelocityDirection * VelocityAfterDash;
 
 	if (MovementComponent->IsMovingOnGround())
 	{
-		bDashing = false;
 		StopAction(Character);
 	}
+	
+	const FString Message = FString::Printf(TEXT("%s used."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 }
 
 void UCAction_Dash::ResetDash()
@@ -176,11 +178,15 @@ float UCAction_Dash::GetDashTimerProgress() const
 	return Remaining / DashTimeSlowDuration;
 }
 
+FString UCAction_Dash::GetInCooldownMessage() const
+{
+	return FString::Printf(TEXT("%s refueling"), *ActionName.ToString());
+}
+
 void UCAction_Dash::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMovementMode)
 {
-	if (PreviousMovementMode == MOVE_Falling)
+	if (PreviousMovementMode == MOVE_Falling && bDashing)
 	{
-		bDashing = false;
-		ResetDash();
+		InterruptDash();
 	}
 }

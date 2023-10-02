@@ -31,6 +31,10 @@ public:
 
 	virtual void TickAction_Implementation(float DeltaTime) override;
 
+protected:
+
+	virtual FString GetInCooldownMessage() const override;
+
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Traversal", meta = (AllowPrivateAccess = "true"))

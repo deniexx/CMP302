@@ -37,6 +37,8 @@ public:
 	
 protected:
 
+	virtual FString GetInCooldownMessage() const override;
+
 	UPROPERTY()
 	ACCommonCharacter* Character;
 

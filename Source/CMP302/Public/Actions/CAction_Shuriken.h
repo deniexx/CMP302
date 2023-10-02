@@ -27,6 +27,8 @@ public:
 
 protected:
 
+	virtual FString GetInCooldownMessage() const override;
+
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<ACProjectile> ShurikenProjectileClass;
 

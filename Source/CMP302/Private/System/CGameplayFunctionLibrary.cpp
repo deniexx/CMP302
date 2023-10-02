@@ -5,7 +5,9 @@
 
 #include "ActorComponents/CCombatStatusComponent.h"
 #include "Character/CCommonCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "Projectiles/CProjectile.h"
+#include "System/CStatusReportSubsystem.h"
 
 FLinearColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusType AttackStatus)
 {
@@ -85,3 +87,22 @@ ACProjectile* UCGameplayFunctionLibrary::SpawnProjectile(const UObject* WorldCon
 	Projectile->FinishSpawning(SpawnTransform);
 	return Projectile;
 }
+
+UCStatusReportSubsystem* UCGameplayFunctionLibrary::GetStatusReportSubsystem(const UObject* WorldContextObject)
+{
+	const UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
+	return GameInstance ? GameInstance->GetSubsystem<UCStatusReportSubsystem>() : nullptr;
+}
+
+void UCGameplayFunctionLibrary::AddStatusReportMessage(const UObject* WorldContextObject, const FString& Message)
+{
+	if (const UCStatusReportSubsystem* StatusReportSubsystem = GetStatusReportSubsystem(WorldContextObject))
+		StatusReportSubsystem->AddStatusMessage(Message);
+}
+
+void UCGameplayFunctionLibrary::UpdateStatusImage(const UObject* WorldContextObject, UTexture2D* StatusTexture)
+{
+	if (const UCStatusReportSubsystem* StatusReportSubsystem = GetStatusReportSubsystem(WorldContextObject))
+		StatusReportSubsystem->UpdateStatusImage(StatusTexture);
+}
+

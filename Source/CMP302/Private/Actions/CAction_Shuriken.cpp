@@ -30,8 +30,6 @@ void UCAction_Shuriken::OnActionAdded_Implementation(AActor* InInstigator)
 	ShurikenCooldownWidget->AddToViewport();
 }
 
-
-
 void UCAction_Shuriken::OnActionRemoved_Implementation(AActor* InInstigator)
 {
 	Super::OnActionRemoved_Implementation(InInstigator);
@@ -63,6 +61,11 @@ void UCAction_Shuriken::StartAction_Implementation(AActor* InInstigator)
 	GetWorld()->GetTimerManager().SetTimer(AttackDelayHandle, Delegate, AttackAnimDelay, false);
 }
 
+FString UCAction_Shuriken::GetInCooldownMessage() const
+{
+	return FString::Printf(TEXT("%ls module not ready!"), *ActionName.ToString());
+}
+
 void UCAction_Shuriken::AttackDelayTimer_Elapsed(ACCommonCharacter* Character)
 {
 	if (ensureAlways(ShurikenProjectileClass))
@@ -77,5 +80,8 @@ void UCAction_Shuriken::AttackDelayTimer_Elapsed(ACCommonCharacter* Character)
 			ShurikenMeshComponent->SetVisibility(false);
 	}
 
+	const FString Message = FString::Printf(TEXT("%s thrown."), *ActionName.ToString());
+	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
+	
 	StopAction(InstigatorActor);
 }
