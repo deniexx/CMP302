@@ -3,9 +3,13 @@
 
 #include "UI/CStatusReportWidget.h"
 
+#include "Blueprint/WidgetTree.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "UI/CTutorialWidget.h"
 #include "UI/CReportEntryWidget.h"
 
 void UCStatusReportWidget::AddStatusMessage(const FString& Message)
@@ -32,7 +36,33 @@ void UCStatusReportWidget::AddStatusMessage(const FString& Message)
 	ReportVerticalBox->AddChildToVerticalBox(ReportEntry);
 }
 
-void UCStatusReportWidget::UpdateStatusImage(UTexture2D* StatusTexture) const
+void UCStatusReportWidget::AddTutorialWidget(const FString& TutorialMessage, const TArray<FString>& KeysToDisplay) const
 {
-	StatusImage->SetBrushFromTexture(StatusTexture);
+	UCTutorialWidget* TutorialWidget = CreateWidget<UCTutorialWidget>(GetOwningPlayer(), TutorialWidgetClass);
+	TutorialWidget->TutorialText->SetText(FText::FromString(TutorialMessage));
+	
+	for (auto Key : KeysToDisplay)
+	{
+		if (Key == "LMB" || Key == "RMB" || Key == "Mouse")
+		{
+			UImage* Image = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+			UTexture2D* TextureToSet = Key == "LMB" ? LMBButton : RMBButton;
+			TextureToSet = Key == "Mouse" ? Mouse : TextureToSet;
+
+			FSlateBrush SlateBrush;
+			SlateBrush.SetImageSize(FVector2D(60.f, 60.f));
+			SlateBrush.SetResourceObject(TextureToSet);
+			//Image->SetBrushFromTexture(TextureToSet);
+			//Image->SetDesiredSizeOverride(FVector2D(60.f, 60.f));
+			Image->SetBrush(SlateBrush);
+
+			TutorialWidget->KeysHorizontalBox->AddChildToHorizontalBox(Image);
+			continue;
+		}
+
+		FString Text = TutorialWidget->KeysText->GetText().ToString() + Key;
+		TutorialWidget->KeysText->SetText(FText::FromString(Text));
+	}
+
+	TutorialVerticalBox->AddChildToVerticalBox(TutorialWidget);
 }

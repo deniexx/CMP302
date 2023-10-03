@@ -21,6 +21,7 @@ void UCAction_Dash::OnActionAdded_Implementation(AActor* InInstigator)
 	DefaultAirControl = MovementComponent->AirControl;
 	DefaultMaxWalkSpeed = MovementComponent->MaxWalkSpeed;
 	DefaultMaxAcceleration = MovementComponent->GetMaxAcceleration();
+	bGroundTouched = true;
 
 	MovementComponent->OnMovementChanged.AddDynamic(this, &UCAction_Dash::OnMovementModeChanged);
 }
@@ -76,6 +77,7 @@ void UCAction_Dash::StartAction_Implementation(AActor* InInstigator)
 	Super::StartAction_Implementation(InInstigator);
 	
 	bDashing = true;
+	bGroundTouched = false;
 	MovementComponent->AirControl = 1.f;
 	MovementComponent->MaxWalkSpeed = 2 * MovementComponent->MaxWalkSpeed;
 	MovementComponent->MaxAcceleration = 2 * MovementComponent->MaxAcceleration;
@@ -117,7 +119,7 @@ void UCAction_Dash::StopAction_Implementation(AActor* InInstigator)
 
 bool UCAction_Dash::CanStart_Implementation(AActor* InInstigator)
 {
-	return Super::CanStart_Implementation(InInstigator) && !bDashing;
+	return Super::CanStart_Implementation(InInstigator) && !bDashing && bGroundTouched;
 }
 
 void UCAction_Dash::InterruptDash()
@@ -128,6 +130,7 @@ void UCAction_Dash::InterruptDash()
 	if (MovementComponent->IsMovingOnGround())
 	{
 		StopAction(Character);
+		bGroundTouched = true;
 	}
 
 	const FString Message = FString::Printf(TEXT("%s malfunctioned."), *ActionName.ToString());
@@ -144,6 +147,7 @@ void UCAction_Dash::Dash()
 	if (MovementComponent->IsMovingOnGround())
 	{
 		StopAction(Character);
+		bGroundTouched = true;
 	}
 	
 	const FString Message = FString::Printf(TEXT("%s used."), *ActionName.ToString());
@@ -185,8 +189,10 @@ FString UCAction_Dash::GetInCooldownMessage() const
 
 void UCAction_Dash::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMovementMode)
 {
-	if (PreviousMovementMode == MOVE_Falling && bDashing)
+	if (PreviousMovementMode == MOVE_Falling)
 	{
-		InterruptDash();
+		if (bDashing)
+			InterruptDash();
+		bGroundTouched = true;
 	}
 }

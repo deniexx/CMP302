@@ -119,7 +119,7 @@ void UCCombatStatusComponent::UpdateAttackStatusType(EAttackStatusType NewAttack
 	CurrentAttackStatusColor = UCGameplayFunctionLibrary::GetColorFromAttackStatus(AttackStatusType);
 }
 
-bool UCCombatStatusComponent::TryRegisterHit(const FAttackData& AttackData) const
+bool UCCombatStatusComponent::TryRegisterHit(const FAttackData& AttackData)
 {
 	const bool bCanRegisterHit = CheckCanBeHit(AttackData);
 

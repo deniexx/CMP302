@@ -75,6 +75,8 @@ protected:
 
 	bool bDashing;
 
+	bool bGroundTouched;
+
 	FVector DashLocation;
 
 	/** Default variables that we can return to */

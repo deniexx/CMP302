@@ -13,7 +13,7 @@ void UCCheatManager::HitTarget(EAttackStatusType AttackStatus)
 		FHitResult TargetHitResult;
 		const AActor* TargetActor = GetTarget(PlayerController, TargetHitResult);
 
-		if (const UCCombatStatusComponent* CombatComponent = UCCombatStatusComponent::GetCombatStatusComponent(TargetActor))
+		if (UCCombatStatusComponent* CombatComponent = UCCombatStatusComponent::GetCombatStatusComponent(TargetActor))
 		{
 			FAttackData AttackData;
 			AttackData.AttackStatusType = AttackStatus;

@@ -149,6 +149,17 @@ protected:
 	/** A description used for the UI */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (MultiLine = 3))
 	FText ActionDescription;
+
+	/** The keys used for this action */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TArray<FString> ActionKeys;
+
+	/** A tutorial text to display */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	FString ActionTutorialText;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	bool bDisplayTutorial;
 	
 	/** Handle of the cooldown timer */
 	UPROPERTY()

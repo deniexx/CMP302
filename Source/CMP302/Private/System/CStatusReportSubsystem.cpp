@@ -35,8 +35,8 @@ void UCStatusReportSubsystem::AddStatusMessage(const FString& Message) const
 		StatusReportWidget->AddStatusMessage(Message);
 }
 
-void UCStatusReportSubsystem::UpdateStatusImage(UTexture2D* StatusTexture) const
+void UCStatusReportSubsystem::AddTutorialMessage(const FString& TutorialMessage, const TArray<FString>& KeysToDisplay) const
 {
 	if (StatusReportWidget)
-		StatusReportWidget->UpdateStatusImage(StatusTexture);
+		StatusReportWidget->AddTutorialWidget(TutorialMessage, KeysToDisplay);
 }

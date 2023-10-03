@@ -40,7 +40,7 @@ FLinearColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusTy
 
 bool UCGameplayFunctionLibrary::TryRegisterHit(const FAttackData& AttackData, AActor* TargetActor)
 {
-	if (const UCCombatStatusComponent* CombatComponent = TargetActor ? UCCombatStatusComponent::GetCombatStatusComponent(TargetActor) : nullptr)
+	if (UCCombatStatusComponent* CombatComponent = TargetActor ? UCCombatStatusComponent::GetCombatStatusComponent(TargetActor) : nullptr)
 	{
 		return CombatComponent->TryRegisterHit(AttackData);
 	}
@@ -100,9 +100,9 @@ void UCGameplayFunctionLibrary::AddStatusReportMessage(const UObject* WorldConte
 		StatusReportSubsystem->AddStatusMessage(Message);
 }
 
-void UCGameplayFunctionLibrary::UpdateStatusImage(const UObject* WorldContextObject, UTexture2D* StatusTexture)
+void UCGameplayFunctionLibrary::AddTutorialMessage(const UObject* WorldContextObject, const FString& TutorialMessage, const TArray<FString>& KeysToDisplay)
 {
 	if (const UCStatusReportSubsystem* StatusReportSubsystem = GetStatusReportSubsystem(WorldContextObject))
-		StatusReportSubsystem->UpdateStatusImage(StatusTexture);
+		StatusReportSubsystem->AddTutorialMessage(TutorialMessage, KeysToDisplay);
 }
 

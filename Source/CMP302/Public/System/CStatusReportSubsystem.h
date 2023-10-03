@@ -25,7 +25,7 @@ public:
 
 	void AddStatusMessage(const FString& Message) const;
 
-	void UpdateStatusImage(UTexture2D* StatusTexture) const;
+	void AddTutorialMessage(const FString& TutorialMessage, const TArray<FString>& KeysToDisplay) const;
 
 
 private:

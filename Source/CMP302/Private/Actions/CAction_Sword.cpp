@@ -13,6 +13,8 @@ void UCAction_Sword::OnActionAdded_Implementation(AActor* InInstigator)
 
 	ACCommonCharacter* Character = Cast<ACCommonCharacter>(InInstigator);
 	
+	Character->GetMesh()->SetHiddenInGame(false);
+	Character->ReadyActor();
 	SwordMeshComponent = Cast<UStaticMeshComponent>(InInstigator->AddComponentByClass(UStaticMeshComponent::StaticClass(), true, FTransform(), false));
 	SwordMeshComponent->SetStaticMesh(SwordMesh);
 	SwordMeshComponent->SetMobility(EComponentMobility::Movable);

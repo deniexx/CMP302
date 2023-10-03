@@ -132,6 +132,16 @@ private:
 
 	bool bInputSetup;
 
+	FTransform SpawnTransform;
+
+	bool bResetTransform;
+
+	virtual void OnHitTaken(const FAttackData& AttackData) override;
+
+	virtual void ReadyActor() override;
+
+	void SetUpPlayerForPlay();
+
 public:
 
 	// Called to bind functionality to input
@@ -139,4 +149,6 @@ public:
 	
 	/** Returns FirstPersonCameraComponent sub object */
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	void SetSpawnTransform(const FTransform& InSpawnTransform);
 };

@@ -99,7 +99,8 @@ public:
 	 * @param AttackData Attack data to be used to determine whether the hit should be registered
 	 * @returns Whether the hit was successfully registered
 	 */
-	bool TryRegisterHit(const FAttackData& AttackData) const;
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	bool TryRegisterHit(const FAttackData& AttackData);
 
 	/**
 	 * Gets the player material parameter collection

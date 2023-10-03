@@ -10,6 +10,7 @@
 #include "ActorComponents/CExtendedCharacterMovement.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "System/CGameplayFunctionLibrary.h"
 
 ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCExtendedCharacterMovement>(CharacterMovementComponentName))
@@ -25,6 +26,7 @@ ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	GetMesh()->CastShadow = false;
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -165.f));
 
+	bResetTransform = false;
 	bInputSetup = false;
 }
 
@@ -37,6 +39,7 @@ void ACPlayerCharacter::BeginPlay()
 	PlayerController->SetIgnoreLookInput(true);
 	PlayerController->SetIgnoreMoveInput(true);
 
+	SpawnTransform = GetActorTransform();
 	ReadyActor();
 }
 
@@ -44,19 +47,54 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bInputSetup && FMath::IsNearlyEqual(AppearanceAlpha, 1))
+	if (FMath::IsNearlyEqual(AppearanceAlpha, 1))
 	{
-		if (APlayerController* PlayerController = GetController<APlayerController>())
+		SetUpPlayerForPlay();
+	}
+}
+
+void ACPlayerCharacter::OnHitTaken(const FAttackData& AttackData)
+{
+	Super::OnHitTaken(AttackData);
+
+	bResetTransform = true;
+	ReadyActor();
+}
+
+void ACPlayerCharacter::ReadyActor()
+{
+	Super::ReadyActor();
+
+	if (bResetTransform)
+	{
+		bResetTransform = false;
+		SetActorTransform(SpawnTransform);
+	}
+}
+
+void ACPlayerCharacter::SetUpPlayerForPlay()
+{
+	if (bInputSetup) return;
+	
+	if (APlayerController* PlayerController = GetController<APlayerController>())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-			{
-				Subsystem->AddMappingContext(DefaultMappingContext, 0);
-				PlayerController->SetIgnoreLookInput(false);
-				PlayerController->SetIgnoreMoveInput(false);
-				bInputSetup = true;
-			}
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			PlayerController->SetIgnoreLookInput(false);
+			PlayerController->SetIgnoreMoveInput(false);
+			bInputSetup = true;
 		}
 	}
+	
+	TArray<FString> TutorialKeys = { TEXT("WASD") };
+	FString TutorialText = TEXT("to walk");
+	UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
+
+	TutorialKeys.Empty();
+	TutorialKeys.Add(TEXT("Mouse"));
+	TutorialText = TEXT("to look");
+	UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -90,6 +128,11 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(SlideInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::BeginSlide);
 		EnhancedInputComponent->BindAction(SlideInputAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::EndSlide);
 	}
+}
+
+void ACPlayerCharacter::SetSpawnTransform(const FTransform& InSpawnTransform)
+{
+	SpawnTransform = InSpawnTransform;
 }
 
 void ACPlayerCharacter::Move(const FInputActionValue& Value)

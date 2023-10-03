@@ -7,7 +7,7 @@
 #include "CStatusReportWidget.generated.h"
 
 class UCReportEntryWidget;
-class UImage;
+class UCTutorialWidget;
 class UVerticalBox;
 
 /**
@@ -22,7 +22,7 @@ public:
 
 	void AddStatusMessage(const FString& Message);
 
-	void UpdateStatusImage(UTexture2D* StatusTexture) const;
+	void AddTutorialWidget(const FString& TutorialMessage, const TArray<FString>& KeysToDisplay) const;
 
 protected:
 
@@ -30,7 +30,7 @@ protected:
 	UVerticalBox* ReportVerticalBox;
 
 	UPROPERTY(meta = (BindWidget))
-	UImage* StatusImage;
+	UVerticalBox* TutorialVerticalBox;
 
 	UPROPERTY()
 	TArray<UCReportEntryWidget*> Entries;
@@ -39,5 +39,18 @@ protected:
 	int32 MaxEntries;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	UTexture2D* LMBButton;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	UTexture2D* RMBButton;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	UTexture2D* Mouse;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UCReportEntryWidget> ReportEntryWidget;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UCTutorialWidget> TutorialWidgetClass;
+
 };

@@ -45,6 +45,8 @@ float UCAction::GetRemainingCooldownFraction()
 void UCAction::OnActionAdded_Implementation(AActor* InInstigator)
 {
 	UE_LOG(LogCMPActionSystem, Log, TEXT("Granted Action: %s"), *GetNameSafe(this));
+	if (bDisplayTutorial)
+		UCGameplayFunctionLibrary::AddTutorialMessage(GetOuter(), ActionTutorialText, ActionKeys);
 }
 
 void UCAction::OnActionRemoved_Implementation(AActor* InInstigator)
