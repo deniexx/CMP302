@@ -3,6 +3,7 @@
 
 #include "Actions/CAction_WallRun.h"
 
+#include "CLogChannels.h"
 #include "ActorComponents/CActionComponent.h"
 #include "Character/CCommonCharacter.h"
 #include "Components/CapsuleComponent.h"
@@ -45,9 +46,9 @@ void UCAction_WallRun::StartAction_Implementation(AActor* InInstigator)
 	if (bWallRunning)
 	{
 		EndWallRun();
-		const FVector JumpOffDirection = Character->GetActorForwardVector();
-		const FVector JumpOffVector = MovementComponent->GetCurrentAcceleration().GetSafeNormal() + FVector::UpVector + JumpOffDirection;
-			
+		const FVector JumpOffDirection = Character->GetActorForwardVector() + FVector::UpVector;
+		const FVector JumpOffVector = MovementComponent->GetCurrentAcceleration().GetSafeNormal() + JumpOffDirection;
+		
 		Character->LaunchCharacter(JumpOffVector * WallRunJumpOffVelocity, true, true);
 	}
 	else

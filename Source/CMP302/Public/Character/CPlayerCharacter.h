@@ -150,5 +150,6 @@ public:
 	/** Returns FirstPersonCameraComponent sub object */
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UFUNCTION(BlueprintCallable)
 	void SetSpawnTransform(const FTransform& InSpawnTransform);
 };
