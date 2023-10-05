@@ -9,7 +9,7 @@
 
 class UCAction;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnActionStateChanged, UCActionComponent*, OwningComponent, UCAction*, Action);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnActionStateChanged, UCActionComponent*, OwningComponent, UCAction*, Action, bool, bAutoAdded);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CMP302_API UCActionComponent : public UActorComponent
@@ -36,9 +36,10 @@ public:
 	 * Adds an action to the ActionComponent
 	 * @param TargetActor The target actor/instigator of this add action event
 	 * @param ActionClass The action to be added
+	 * @param bAutoAdded Whether the action was auto-added, this is mainly used for the action acquired notification
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-	void AddAction(AActor* TargetActor, TSubclassOf<UCAction> ActionClass);
+	void AddAction(AActor* TargetActor, TSubclassOf<UCAction> ActionClass, bool bAutoAdded = false);
 
 	/**
 	 * Removes an action from the action component

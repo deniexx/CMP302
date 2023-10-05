@@ -29,7 +29,7 @@ void UCActionComponent::BeginPlay()
 	
 	for (const TSubclassOf<UCAction> ActionClass : DefaultActions)
 	{
-		AddAction(GetOwner(), ActionClass);
+		AddAction(GetOwner(), ActionClass, true);
 	}
 }
 
@@ -69,7 +69,7 @@ void UCActionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 }
 
-void UCActionComponent::AddAction(AActor* TargetActor, TSubclassOf<UCAction> ActionClass)
+void UCActionComponent::AddAction(AActor* TargetActor, TSubclassOf<UCAction> ActionClass, bool bAutoAdded)
 {
 	if (!ensure(ActionClass)) return;
 	
@@ -83,7 +83,7 @@ void UCActionComponent::AddAction(AActor* TargetActor, TSubclassOf<UCAction> Act
 		NewAction->Initialize(this);
 		NewAction->OnActionAdded(GetOwner());
 		Actions.Add(NewAction);
-		OnActionAdded.Broadcast(this, NewAction);
+		OnActionAdded.Broadcast(this, NewAction, bAutoAdded);
 
 		if (NewAction->bAutoStart && NewAction->CanStart(TargetActor)) NewAction->StartAction(TargetActor);
 	}
@@ -95,7 +95,7 @@ void UCActionComponent::RemoveAction(UCAction* ActionToRemove)
 	
 	if (ActionToRemove->IsRunning()) ActionToRemove->StopAction(GetOwner());
 
-	OnActionRemoved.Broadcast(this, ActionToRemove);
+	OnActionRemoved.Broadcast(this, ActionToRemove, false);
 	Actions.Remove(ActionToRemove);
 }
 

@@ -111,7 +111,7 @@ void UCAction::StartAction_Implementation(AActor* InInstigator)
 	bIsRunning = true;
 	InstigatorActor = InInstigator;
 
-	GetOwningComponent()->OnActionStarted.Broadcast(GetOwningComponent(), this);
+	GetOwningComponent()->OnActionStarted.Broadcast(GetOwningComponent(), this, false);
 	
 	if (bCooldownStartsOnActionStart)
 		GetWorld()->GetTimerManager().SetTimer(CooldownTimerHandle, this, &UCAction::OnCooldownTimer_Elapsed, Cooldown);
@@ -125,7 +125,7 @@ void UCAction::StopAction_Implementation(AActor* InInstigator)
 	bIsRunning = false;
 	InstigatorActor = InInstigator;
 
-	GetOwningComponent()->OnActionStopped.Broadcast(GetOwningComponent(), this);
+	GetOwningComponent()->OnActionStopped.Broadcast(GetOwningComponent(), this, false);
 
 	if (!bCooldownStartsOnActionStart)
 		GetWorld()->GetTimerManager().SetTimer(CooldownTimerHandle, this, &UCAction::OnCooldownTimer_Elapsed, Cooldown);

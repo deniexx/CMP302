@@ -86,15 +86,18 @@ void ACPlayerCharacter::SetUpPlayerForPlay()
 			bInputSetup = true;
 		}
 	}
-	
-	TArray<FString> TutorialKeys = { TEXT("WASD") };
-	FString TutorialText = TEXT("to walk");
-	UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
 
-	TutorialKeys.Empty();
-	TutorialKeys.Add(TEXT("Mouse"));
-	TutorialText = TEXT("to look");
-	UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
+	if (bIsTutorialCharacter)
+	{
+		TArray<FString> TutorialKeys = { TEXT("WASD") };
+		FString TutorialText = TEXT("to walk");
+		UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
+
+		TutorialKeys.Empty();
+		TutorialKeys.Add(TEXT("Mouse"));
+		TutorialText = TEXT("to look");
+		UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
+	}
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

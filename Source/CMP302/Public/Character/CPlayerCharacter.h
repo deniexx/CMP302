@@ -130,6 +130,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag SlideActionTag;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Tutorial")
+	bool bIsTutorialCharacter;
+
 	bool bInputSetup;
 
 	FTransform SpawnTransform;
