@@ -31,8 +31,21 @@ UCCombatStatusComponent::UCCombatStatusComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	bCanBeHit = true;
+	bCanChangeStatus = true;
 	ColorLerpAlpha = 0.f;
 	ColorLerpSpeed = 1.f;
+}
+
+void UCCombatStatusComponent::OnForceAttackStatus_TimerElapsed()
+{
+	bCanChangeStatus = true;
+	UpdateAttackStatusType(PreviousAttackStatus);
+	ForceAttackStatusHandle.Invalidate();
+}
+
+void UCCombatStatusComponent::OnIgnoreHits_TimerElapsed()
+{
+	bCanBeHit = true;
 }
 
 // Called every frame
@@ -48,6 +61,13 @@ void UCCombatStatusComponent::TickComponent(float DeltaTime, ELevelTick TickType
 				TEXT("PlayerAttackStatusColor"), Color);
 
 		ColorLerpAlpha += DeltaTime * ColorLerpSpeed;
+	}
+
+	if (!bCanChangeStatus)
+	{
+		const float DurationLeft = ForceAttackStatusHandle.IsValid() ? GetWorld()->GetTimerManager().GetTimerRemaining(ForceAttackStatusHandle) / 5.f : 1.f ;
+		
+		UKismetMaterialLibrary::SetScalarParameterValue(CharacterOwner, UIMaterialParameters, TEXT("OverloadTimerProgress"), DurationLeft);
 	}
 }
 
@@ -109,14 +129,36 @@ bool UCCombatStatusComponent::CheckCanBeHit(const FAttackData& AttackData) const
 
 void UCCombatStatusComponent::UpdateAttackStatusType(EAttackStatusType NewAttackStatusType)
 {
-	const EAttackStatusType Previous = AttackStatusType;
+	if (!bCanChangeStatus) return;
+	
+	PreviousAttackStatus = AttackStatusType;
 	AttackStatusType = NewAttackStatusType;
 
-	OnAttackStatusTypeUpdated.Broadcast(Previous, AttackStatusType);
+	OnAttackStatusTypeUpdated.Broadcast(PreviousAttackStatus, AttackStatusType);
 
 	ColorLerpAlpha = 0.f;
 	PreviousAttackStatusColor =  UKismetMaterialLibrary::GetVectorParameterValue(CharacterOwner, PlayerMaterialParameters, TEXT("PlayerAttackStatusColor"));
 	CurrentAttackStatusColor = UCGameplayFunctionLibrary::GetColorFromAttackStatus(AttackStatusType);
+}
+
+void UCCombatStatusComponent::ForceAttackStatusTypeForDuration(EAttackStatusType NewAttackStatusType, float Duration)
+{
+	if (!bCanChangeStatus) return;
+	
+	UpdateAttackStatusType(NewAttackStatusType);
+	bCanChangeStatus = false;
+	
+	GetWorld()->GetTimerManager().SetTimer(ForceAttackStatusHandle, this, &UCCombatStatusComponent::OnForceAttackStatus_TimerElapsed, Duration);
+}
+
+void UCCombatStatusComponent::IgnoreHitsForDuration(float Duration)
+{
+	if (!bCanBeHit) return;
+
+	bCanBeHit = false;
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UCCombatStatusComponent::OnIgnoreHits_TimerElapsed, Duration);
 }
 
 bool UCCombatStatusComponent::TryRegisterHit(const FAttackData& AttackData)

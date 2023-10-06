@@ -50,6 +50,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
 	UMaterialParameterCollection* PlayerMaterialParameters;
 
+	/** This will drive player material parameters */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	UMaterialParameterCollection* UIMaterialParameters;
+
 private:
 
 	/**
@@ -77,6 +81,21 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float ColorLerpSpeed;
 
+	/** Current attack status type */
+	UPROPERTY(BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	EAttackStatusType PreviousAttackStatus = EAttackStatusType::None;
+
+	bool bCanChangeStatus;
+
+	UFUNCTION()
+	void OnForceAttackStatus_TimerElapsed();
+
+	UFUNCTION()
+	void OnIgnoreHits_TimerElapsed();
+
+	UPROPERTY()
+	FTimerHandle ForceAttackStatusHandle;
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -86,6 +105,19 @@ public:
 	 * @param NewAttackStatusType The new attack status type to be applied
 	 */
 	void UpdateAttackStatusType(EAttackStatusType NewAttackStatusType);
+
+	/**
+	 * Forces the attack status to be a certain type for a given duration
+	 * @param NewAttackStatusType The new attack status type to be applied
+	 * @param Duration The duration this new attack status type to be active for, we will return to the previous one after this duration
+	 */
+	void ForceAttackStatusTypeForDuration(EAttackStatusType NewAttackStatusType, float Duration);
+
+	/**
+	 * Sets the character to ignore hits (can't be hit) for a specified duration
+	 * @param Duration The duration for which to ignore the hits
+	 */
+	void IgnoreHitsForDuration(float Duration);
 
 	/**
 	 * Gets the attack status of the character

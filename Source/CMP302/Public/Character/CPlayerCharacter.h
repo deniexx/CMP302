@@ -68,6 +68,9 @@ protected:
 	UFUNCTION()
 	void EndSlide(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void OverloadCharacter(const FInputActionValue& Value);
+
 private:
 	
 	/** First person camera */
@@ -110,6 +113,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SlideInputAction;
 
+	/** Overload Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* OverloadInputAction;
+
+
 	/** Fire Projectile Action Tag */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag FireProjectileActionTag;
@@ -130,8 +138,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag SlideActionTag;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Tutorial")
-	bool bIsTutorialCharacter;
+	/** Overload Action Tag */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	FGameplayTag OverloadActionTag;
 
 	bool bInputSetup;
 
@@ -144,6 +153,9 @@ private:
 	virtual void ReadyActor() override;
 
 	void SetUpPlayerForPlay();
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsTutorialCharacter;
 
 public:
 

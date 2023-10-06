@@ -26,6 +26,7 @@ ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	GetMesh()->CastShadow = false;
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -165.f));
 
+	bIsTutorialCharacter = false;
 	bResetTransform = false;
 	bInputSetup = false;
 }
@@ -68,7 +69,7 @@ void ACPlayerCharacter::ReadyActor()
 	if (bResetTransform)
 	{
 		bResetTransform = false;
-		SetActorTransform(SpawnTransform);
+		SetActorTransform(SpawnTransform, false, nullptr, ETeleportType::ResetPhysics);
 	}
 }
 
@@ -130,6 +131,9 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Slide
 		EnhancedInputComponent->BindAction(SlideInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::BeginSlide);
 		EnhancedInputComponent->BindAction(SlideInputAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::EndSlide);
+
+		// Overload
+		EnhancedInputComponent->BindAction(OverloadInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::OverloadCharacter);
 	}
 }
 
@@ -228,4 +232,10 @@ void ACPlayerCharacter::EndSlide(const FInputActionValue& Value)
 {
 	if (ensureAlways(ActionComponent))
 		ActionComponent->StopActionByTag(this, SlideActionTag);
+}
+
+void ACPlayerCharacter::OverloadCharacter(const FInputActionValue& Value)
+{
+	if (ensureAlways(ActionComponent))
+		ActionComponent->StartActionByTag(this, OverloadActionTag);
 }

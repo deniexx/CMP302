@@ -32,10 +32,24 @@ FLinearColor UCGameplayFunctionLibrary::GetColorFromAttackStatus(EAttackStatusTy
 			break;
 		default:
 			ToReturn = FLinearColor::Black;
-			break;;
+			break;
 	}
 
 	return ToReturn;
+}
+
+EAttackStatusType UCGameplayFunctionLibrary::GetAttackStatusFromColor(FLinearColor Color)
+{
+	if (Color == FLinearColor::Green)
+		return EAttackStatusType::Green;
+	if (Color == FLinearColor::Red)
+		return EAttackStatusType::Red;
+	if (Color == FLinearColor::Blue)
+		return EAttackStatusType::Blue;
+	if (Color == FLinearColor::White)
+		return EAttackStatusType::White;
+
+	return EAttackStatusType::None;
 }
 
 bool UCGameplayFunctionLibrary::TryRegisterHit(const FAttackData& AttackData, AActor* TargetActor)
@@ -48,8 +62,8 @@ bool UCGameplayFunctionLibrary::TryRegisterHit(const FAttackData& AttackData, AA
 	return false;
 }
 
-ACProjectile* UCGameplayFunctionLibrary::SpawnProjectile(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass,
-                                                         ACCommonCharacter* Character)
+ACProjectile* UCGameplayFunctionLibrary::SpawnProjectile(const UObject* WorldContextObject,
+	TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character)
 {
 	if (!ensureAlways(ProjectileClass) || !Character) return nullptr;
 	
