@@ -56,34 +56,36 @@ void ACCommonCharacter::Landed(const FHitResult& Hit)
 	OnCharacterLanded.Broadcast(Hit);
 }
 
-// Called every frame
-void ACCommonCharacter::Tick(float DeltaTime)
+void ACCommonCharacter::TweenAppearance(float Value)
 {
-	Super::Tick(DeltaTime);
-
-	const float AlphaTarget = bDead ? 0.f : 1.f;
-
-	if (!FMath::IsNearlyEqual(AppearanceAlpha, AlphaTarget))
+	if (UMaterialParameterCollection* ParamCollection = CombatComponent ? CombatComponent->GetPlayerMaterialParameters() : nullptr)
 	{
-		AppearanceAlpha += bDead ? -DeltaTime : DeltaTime;
-		AppearanceAlpha = FMath::Clamp(AppearanceAlpha, 0, 1);
-
-		if (UMaterialParameterCollection* ParamCollection = CombatComponent ? CombatComponent->GetPlayerMaterialParameters() : nullptr)
-		{
-			UKismetMaterialLibrary::SetScalarParameterValue(this, ParamCollection, "Appearance", AppearanceAlpha);
-		}
-		
-		for (UMaterialInstanceDynamic* Material : MeshDynamicMaterials)
-		{
-			Material->SetScalarParameterValue("Appearance", AppearanceAlpha);
-		}
+		UKismetMaterialLibrary::SetScalarParameterValue(this, ParamCollection, "Appearance", Value);
 	}
+		
+	for (UMaterialInstanceDynamic* Material : MeshDynamicMaterials)
+	{
+		Material->SetScalarParameterValue("Appearance", Value);
+	}
+}
+
+void ACCommonCharacter::StartTweenAppearance()
+{
+	FTweenHandle Handle;
+	UTweenSubsystem* TweenWorldSubsystem = GetGameInstance()->GetSubsystem<UTweenSubsystem>();
+	FTweenDelegate Delegate;
+	Delegate.BindUObject(this, &ThisClass::TweenAppearance);
+	
+	const float Start = bDead ? 1 : 0;
+	const float End = bDead ? 0 : 1;
+	TweenWorldSubsystem->AddTween(Handle, Start, End, Delegate, 1, ETweenFunction::EaseInOutQuint);
 }
 
 void ACCommonCharacter::ReadyActor()
 {
 	bDead = false;
-	AppearanceAlpha = 0.f;
+
+	StartTweenAppearance();
 }
 
 bool ACCommonCharacter::IsDead() const

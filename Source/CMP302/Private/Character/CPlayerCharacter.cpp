@@ -8,9 +8,9 @@
 #include "ActorComponents/CActionComponent.h"
 #include "ActorComponents/CCombatStatusComponent.h"
 #include "ActorComponents/CExtendedCharacterMovement.h"
+#include "ActorComponents/CInteractionComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "System/CGameplayFunctionLibrary.h"
 
 ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCExtendedCharacterMovement>(CharacterMovementComponentName))
@@ -19,16 +19,18 @@ ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10, 0 , 60.f)); // Again default values used by Epic in the template
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+
+	InteractionComponent = CreateDefaultSubobject<UCInteractionComponent>(TEXT("InteractionComponent"));
 	
 	GetMesh()->SetOnlyOwnerSee(true);
 	GetMesh()->SetupAttachment(FirstPersonCameraComponent);
 	GetMesh()->bCastDynamicShadow = false;
 	GetMesh()->CastShadow = false;
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -165.f));
-
-	bIsTutorialCharacter = false;
+	
 	bResetTransform = false;
 	bInputSetup = false;
+	bDead = false;
 }
 
 void ACPlayerCharacter::BeginPlay()
@@ -42,16 +44,6 @@ void ACPlayerCharacter::BeginPlay()
 
 	SpawnTransform = GetActorTransform();
 	ReadyActor();
-}
-
-void ACPlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (FMath::IsNearlyEqual(AppearanceAlpha, 1))
-	{
-		SetUpPlayerForPlay();
-	}
 }
 
 void ACPlayerCharacter::OnHitTaken(const FAttackData& AttackData)
@@ -87,18 +79,14 @@ void ACPlayerCharacter::SetUpPlayerForPlay()
 			bInputSetup = true;
 		}
 	}
+}
 
-	if (bIsTutorialCharacter)
-	{
-		TArray<FString> TutorialKeys = { TEXT("WASD") };
-		FString TutorialText = TEXT("to walk");
-		UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
+void ACPlayerCharacter::TweenAppearance(float Value)
+{
+	Super::TweenAppearance(Value);
 
-		TutorialKeys.Empty();
-		TutorialKeys.Add(TEXT("Mouse"));
-		TutorialText = TEXT("to look");
-		UCGameplayFunctionLibrary::AddTutorialMessage(this, TutorialText, TutorialKeys);
-	}
+	if (Value >= 1.f)
+		SetUpPlayerForPlay();
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -134,6 +122,9 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Overload
 		EnhancedInputComponent->BindAction(OverloadInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::OverloadCharacter);
+
+		// Interact
+		EnhancedInputComponent->BindAction(InteractInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::Interact);
 	}
 }
 
@@ -238,4 +229,10 @@ void ACPlayerCharacter::OverloadCharacter(const FInputActionValue& Value)
 {
 	if (ensureAlways(ActionComponent))
 		ActionComponent->StartActionByTag(this, OverloadActionTag);
+}
+
+void ACPlayerCharacter::Interact(const FInputActionValue& Value)
+{
+	if (ensureAlways(InteractionComponent))
+		InteractionComponent->PrimaryInteract();
 }

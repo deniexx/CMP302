@@ -3,11 +3,14 @@
 
 #include "Actions/CAction_Dash.h"
 
+#include "ActorComponents/CActionComponent.h"
+#include "ActorComponents/CCombatStatusComponent.h"
 #include "ActorComponents/CExtendedCharacterMovement.h"
 #include "Character/CCommonCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMaterialLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
 #include "UI/CDashUserWidget.h"
 
@@ -22,6 +25,14 @@ void UCAction_Dash::OnActionAdded_Implementation(AActor* InInstigator)
 	DefaultMaxWalkSpeed = MovementComponent->MaxWalkSpeed;
 	DefaultMaxAcceleration = MovementComponent->GetMaxAcceleration();
 	bGroundTouched = true;
+	
+	if (ensure(DashCooldownWidgetClass))
+	{
+		APlayerController* PlayerController = Character->GetController<APlayerController>();
+		DashCooldownWidgetInstance = CreateWidget(PlayerController, DashCooldownWidgetClass);
+		DashCooldownWidgetInstance->AddToViewport();
+		UKismetMaterialLibrary::SetScalarParameterValue(Character, UIMaterialParameters, TEXT("DashCooldownProgress"), 1);
+	}
 
 	MovementComponent->OnMovementChanged.AddDynamic(this, &UCAction_Dash::OnMovementModeChanged);
 }
@@ -29,6 +40,9 @@ void UCAction_Dash::OnActionAdded_Implementation(AActor* InInstigator)
 void UCAction_Dash::OnActionRemoved_Implementation(AActor* InInstigator)
 {
 	Super::OnActionRemoved_Implementation(InInstigator);
+
+	if (DashCooldownWidgetInstance)
+		DashCooldownWidgetInstance->RemoveFromParent();
 }
 
 void UCAction_Dash::TickAction_Implementation(float DeltaTime)
@@ -140,6 +154,54 @@ void UCAction_Dash::InterruptDash()
 void UCAction_Dash::Dash()
 {
 	bDashing = false;
+
+	FTweenHandle Handle;
+	FTweenDelegate Delegate;
+	Delegate.BindUObject(this, &ThisClass::TweenDashCooldownUIParameter);
+	UTweenSubsystem* TweenSubsystem = Character->GetGameInstance()->GetSubsystem<UTweenSubsystem>();
+	TweenSubsystem->AddTween(Handle, 0, Cooldown, Delegate);
+
+	if (GetOwningComponent()->ActiveGameplayTags.HasTagExact(OverchargeTag))
+	{
+		const FVector TraceStart = Character->GetActorLocation();
+		const float Radius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+		const float HalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		FCollisionShape Shape;
+		Shape.SetCapsule(Radius, HalfHeight);
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(Character);
+
+		FCollisionObjectQueryParams ObjParams;
+		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		TArray<FHitResult> HitResults;
+
+		if (GetWorld()->SweepMultiByObjectType(HitResults, TraceStart, DashLocation, FQuat::Identity, ObjParams, Shape))
+		{
+			const UCCombatStatusComponent* CombatStatusComponent = UCCombatStatusComponent::GetCombatStatusComponent(Character);
+			FAttackData AttackData;
+			AttackData.Instigator = Character;
+			AttackData.AttackStatusType = CombatStatusComponent->GetAttackStatusType();
+			AttackData.ImpactStrength = 4000.f;
+
+			TArray<AActor*> ActorsHit;
+		
+			for (const FHitResult& HitResult: HitResults)
+			{
+				if (UCGameplayFunctionLibrary::TryRegisterHit(AttackData, HitResult.GetActor()))
+				{
+					ActorsHit.AddUnique(HitResult.GetActor());
+				}
+			}
+
+			if (ActorsHit.Num() > 0)
+			{
+				UCGameplayFunctionLibrary::AddStatusReportMessage(Character, FString::Printf(TEXT("Hyperspeed enemies sliced: %d"), ActorsHit.Num()));
+			}
+		}
+	}
+	
 	Character->SetActorLocation(DashLocation, false, nullptr, ETeleportType::ResetPhysics);
 	const FVector VelocityDirection = Character->GetActorForwardVector();
 	MovementComponent->Velocity = VelocityDirection * VelocityAfterDash;
@@ -195,4 +257,10 @@ void UCAction_Dash::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 			InterruptDash();
 		bGroundTouched = true;
 	}
+}
+
+void UCAction_Dash::TweenDashCooldownUIParameter(float Value)
+{
+	const float ActualValue = Value / Cooldown;
+	UKismetMaterialLibrary::SetScalarParameterValue(Character, UIMaterialParameters, TEXT("DashCooldownProgress"), ActualValue);
 }

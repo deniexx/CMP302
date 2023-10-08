@@ -7,6 +7,7 @@
 #include "Character/CCommonCharacter.h"
 #include "CPlayerCharacter.generated.h"
 
+class UCInteractionComponent;
 struct FInputActionValue;
 class UCameraComponent;
 class UInputAction;
@@ -28,8 +29,6 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-
-	virtual void Tick(float DeltaTime) override;
 
 	/** Called for movement input */
 	UFUNCTION()
@@ -71,12 +70,19 @@ protected:
 	UFUNCTION()
 	void OverloadCharacter(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void Interact(const FInputActionValue& Value);
+
 private:
 	
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UCInteractionComponent* InteractionComponent;
+	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -117,6 +123,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* OverloadInputAction;
 
+	/** Overload Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractInputAction;
+
 
 	/** Fire Projectile Action Tag */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
@@ -154,8 +164,7 @@ private:
 
 	void SetUpPlayerForPlay();
 
-	UPROPERTY(EditDefaultsOnly)
-	bool bIsTutorialCharacter;
+	virtual void TweenAppearance(float Value);
 
 public:
 

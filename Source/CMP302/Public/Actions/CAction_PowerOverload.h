@@ -28,6 +28,8 @@ public:
 	virtual bool CanStart_Implementation(AActor* InInstigator) override;
 
 	virtual void StartAction_Implementation(AActor* InInstigator) override;
+
+	virtual void StopAction_Implementation(AActor* InInstigator) override;
 	
 	UFUNCTION(BlueprintCallable)
 	void AddCharge();
@@ -52,5 +54,7 @@ protected:
 
 private:
 
-	bool bHasCharge;
+	float TimeElapsed = 0.f;
+
+	bool bHasCharge = true;
 };

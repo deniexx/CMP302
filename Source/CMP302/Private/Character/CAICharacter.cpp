@@ -8,6 +8,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "System/CGameplayFunctionLibrary.h"
 
+ACAICharacter::ACAICharacter()
+{
+	
+}
+
 void ACAICharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -28,12 +33,6 @@ void ACAICharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (bDead && FMath::IsNearlyZero(AppearanceAlpha))
-	{
-		GetMesh()->SetSimulatePhysics(false);
-		GetMesh()->SetCollisionProfileName("NoCollision");
-	}
-
 	TickAI(DeltaTime);
 }
 
@@ -43,6 +42,8 @@ void ACAICharacter::OnHitTaken(const FAttackData& AttackData)
 
 	bDead = true;
 
+	StartTweenAppearance();
+	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 	GetMesh()->SetSimulatePhysics(true);
@@ -54,6 +55,17 @@ void ACAICharacter::OnHitTaken(const FAttackData& AttackData)
 		FVector ImpulseDirection = (GetActorLocation() - AttackData.Instigator->GetActorLocation());
 		ImpulseDirection.Normalize();
 		GetMesh()->AddImpulse(ImpulseDirection * AttackData.ImpactStrength);
+	}
+}
+
+void ACAICharacter::TweenAppearance(float Value)
+{
+	Super::TweenAppearance(Value);
+
+	if (bDead && Value <= 0.f)
+	{
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionProfileName("NoCollision");
 	}
 }
 

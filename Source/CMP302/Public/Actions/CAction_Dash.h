@@ -45,6 +45,9 @@ protected:
 	UPROPERTY()
 	UCExtendedCharacterMovement* MovementComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	FGameplayTag OverchargeTag;
+
 	/** The duration of the time slow while holding the dash key */
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float DashTimeSlowDuration;
@@ -61,14 +64,23 @@ protected:
 	UPROPERTY()
 	AStaticMeshActor* DashIndicatorActor;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	UStaticMesh* DashIndicatorMesh;
 
 	UPROPERTY()
 	UCDashUserWidget* DashVisualOverlayInstance;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	TSubclassOf<UCDashUserWidget> DashVisualOverlayInstanceClass;
+
+	UPROPERTY()
+	UUserWidget* DashCooldownWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
+	TSubclassOf<UUserWidget> DashCooldownWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
+	UMaterialParameterCollection* UIMaterialParameters;
 
 	UFUNCTION()
 	void InterruptDash();
@@ -99,4 +111,6 @@ protected:
 
 	UPROPERTY()
 	FTimerHandle DashTimerHandle;
+
+	void TweenDashCooldownUIParameter(float Value);
 };

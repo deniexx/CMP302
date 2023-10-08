@@ -43,8 +43,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Forces")
 	float OnGroundSlideDuration;
+
+	UPROPERTY(EditAnywhere, Category = "Visuals")
+	TSubclassOf<UCameraModifier> CameraModifier;
+
+	UPROPERTY()
+	UCameraModifier* AppliedCameraModifier;
 	
 	float MaxSlideSpeed;
+
+	float FOVLerpAlpha;
 
 	UPROPERTY()
 	ACPlayerCharacter* Character;
@@ -52,6 +60,8 @@ protected:
 	UPROPERTY()
 	UCExtendedCharacterMovement* MovementComponent;
 
+	FVector VelocityDirection;
+	
 	float CurrentSlideDuration;
 	
 	float DefaultMaxWalkSpeed;
@@ -66,7 +76,7 @@ protected:
 
 	void BeginSliding();
 
-	bool IsFloorDownwardSlope(const FVector& FloorNormal);
+	float GetSlopeEffect(const FVector& FloorNormal) const;
 	
 	bool CanUncrouch() const;
 

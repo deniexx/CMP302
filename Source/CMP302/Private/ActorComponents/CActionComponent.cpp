@@ -5,8 +5,11 @@
 
 #include "CLogChannels.h"
 #include "Actions/CAction.h"
+#include "Character/CPlayerCharacter.h"
+#include "CMP302/CMP302GameMode.h"
+#include "System/CSaveGame.h"
 
-UCActionComponent* UCActionComponent::GetActionComponent(const AActor* FromActor)
+UCActionComponent* UCActionComponent::GetActionComponent(AActor* FromActor)
 {
 	if (FromActor)
 	{
@@ -31,6 +34,9 @@ void UCActionComponent::BeginPlay()
 	{
 		AddAction(GetOwner(), ActionClass, true);
 	}
+	
+	if (ACPlayerCharacter* PlayerCharacter = Cast<ACPlayerCharacter>(GetOwner()))
+		LoadActions();
 }
 
 void UCActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -43,6 +49,9 @@ void UCActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			Action->StopAction(GetOwner());
 		}
 	}
+
+	if (ACPlayerCharacter* PlayerCharacter = Cast<ACPlayerCharacter>(GetOwner()))
+		SaveActions();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -157,4 +166,34 @@ UCAction* UCActionComponent::GetAction(TSubclassOf<UCAction> ActionClass)
 	}
 
 	return nullptr;
+}
+
+void UCActionComponent::LoadActions()
+{
+	const ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
+	const UCSaveGame* SaveGame = GameMode ? GameMode->GetSaveGame() : nullptr;
+	
+	if (!SaveGame) return;
+
+	for (const TSubclassOf<UCAction> Action : SaveGame->PlayerActions)
+	{
+		AddAction(GetOwner(), Action, true);
+	}
+}
+
+void UCActionComponent::SaveActions()
+{
+	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
+	UCSaveGame* SaveGame = GameMode ? GameMode->GetSaveGame() : nullptr;
+	
+	if (!SaveGame) return;
+	
+	SaveGame->PlayerActions.Empty();
+	
+	for (const UCAction* Action : Actions)
+	{
+		SaveGame->PlayerActions.Add(TSubclassOf<UCAction>(Action->GetClass()));
+	}
+
+	GameMode->WriteSaveGame();
 }

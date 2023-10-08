@@ -5,6 +5,7 @@
 
 #include "ActorComponents/CActionComponent.h"
 #include "ActorComponents/CExtendedCharacterMovement.h"
+#include "Camera/CameraModifier.h"
 #include "Character/CCommonCharacter.h"
 #include "Character/CPlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
@@ -21,13 +22,22 @@ void UCAction_Slide::OnActionAdded_Implementation(AActor* InInstigator)
 	bCrouching = false;
 	bSliding = false;
 	CrouchAlpha = 0.f;
+
+	if (const APlayerController* PlayerController = Character->GetController<APlayerController>())
+	{
+		AppliedCameraModifier = PlayerController->PlayerCameraManager->AddNewCameraModifier(CameraModifier);
+		AppliedCameraModifier->DisableModifier();
+	}
 }
 
 void UCAction_Slide::OnActionRemoved_Implementation(AActor* InInstigator)
 {
 	Super::OnActionRemoved_Implementation(InInstigator);
 
-	
+	if (const APlayerController* PlayerController = Character->GetController<APlayerController>())
+	{
+		PlayerController->PlayerCameraManager->RemoveCameraModifier(AppliedCameraModifier);
+	}
 }
 
 void UCAction_Slide::TickAction_Implementation(float DeltaTime)
@@ -56,15 +66,20 @@ void UCAction_Slide::TickAction_Implementation(float DeltaTime)
 	if (bSliding && IsOnGround())
 	{
 		const FHitResult& Floor = MovementComponent->CurrentFloor.HitResult;
-		
-		if (IsFloorDownwardSlope(Floor.Normal))
+		const float SlopeEffect = GetSlopeEffect(Floor.Normal);
+
+		/* Downward slope */
+		if (FMath::IsNearlyZero(SlopeEffect))
 		{
-			MovementComponent->AddImpulse(Character->GetActorForwardVector() * SlideForce);
+			MovementComponent->AddImpulse(VelocityDirection * SlideForce);
 		}
 		else if (CurrentSlideDuration < OnGroundSlideDuration)
 		{
+			/* If we are moving up a slope, reduce the slide force */
+			const float ActualSlideForce = SlopeEffect > 1.6f ? SlideForce / SlopeEffect : SlideForce;
+				
 			CurrentSlideDuration += DeltaTime;
-			MovementComponent->AddImpulse(Character->GetActorForwardVector() * SlideForce);
+			MovementComponent->AddImpulse(VelocityDirection * ActualSlideForce);
 		}
 		else
 		{
@@ -93,6 +108,7 @@ void UCAction_Slide::StartAction_Implementation(AActor* InInstigator)
 	const float HorizontalVelocity = FMath::Abs(MovementComponent->Velocity.X) + FMath::Abs(MovementComponent->Velocity.Y);
 	if (HorizontalVelocity > 100.f)
 	{
+		VelocityDirection = MovementComponent->Velocity.GetSafeNormal();
 		BeginSliding();
 	}
 }
@@ -118,14 +134,14 @@ void UCAction_Slide::BeginSliding()
 
 	const FString Message = FString::Printf(TEXT("%s engaged."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
+
+	AppliedCameraModifier->EnableModifier();
 }
 
-bool UCAction_Slide::IsFloorDownwardSlope(const FVector& FloorNormal)
+float UCAction_Slide::GetSlopeEffect(const FVector& FloorNormal) const
 {
-	const FVector Across =  FVector::CrossProduct(FVector::UpVector, FloorNormal);
-	const FVector DownSlope = FVector::CrossProduct(Across, FloorNormal);
-
-	return DownSlope.GetSafeNormal().Length() > 0.f;
+	const float AngleRadians = FMath::Acos(FVector::DotProduct(FloorNormal, Character->GetVelocity()));
+	return AngleRadians;
 }
 
 bool UCAction_Slide::CanUncrouch() const
@@ -158,4 +174,6 @@ void UCAction_Slide::EndSliding()
 
 	const FString Message = FString::Printf(TEXT("%s disengaged."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
+
+	AppliedCameraModifier->DisableModifier();
 }

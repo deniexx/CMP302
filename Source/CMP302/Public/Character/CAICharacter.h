@@ -16,6 +16,8 @@ class CMP302_API ACAICharacter : public ACCommonCharacter
 
 public:
 
+	ACAICharacter();
+
 	virtual void ReadyActor() override;
 
 protected:
@@ -31,6 +33,8 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void InitAI();
+
+	virtual void TweenAppearance(float Value) override;
 
 	UFUNCTION(BlueprintNativeEvent)
 	void TickAI(float DeltaSeconds);

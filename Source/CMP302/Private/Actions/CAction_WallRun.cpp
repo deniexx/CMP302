@@ -3,8 +3,8 @@
 
 #include "Actions/CAction_WallRun.h"
 
-#include "CLogChannels.h"
 #include "ActorComponents/CActionComponent.h"
+#include "Camera/CameraModifier.h"
 #include "Character/CCommonCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -28,6 +28,14 @@ void UCAction_WallRun::OnActionAdded_Implementation(AActor* InInstigator)
 	MovementComponent = Character->GetCharacterMovement();
 	Character->GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &UCAction_WallRun::OnCapsuleComponentHit);
 	Character->OnCharacterLanded.AddDynamic(this, &UCAction_WallRun::OnCharacterLanded);
+
+	if (const APlayerController* PlayerController = Character->GetController<APlayerController>())
+    {
+    	AppliedCameraModifierLeft = PlayerController->PlayerCameraManager->AddNewCameraModifier(LeftWallRunCameraModifier);  
+		AppliedCameraModifierRight = PlayerController->PlayerCameraManager->AddNewCameraModifier(RightWallRunCameraModifier);
+		AppliedCameraModifierLeft->DisableModifier();
+		AppliedCameraModifierRight->DisableModifier();
+    }
 }
 
 void UCAction_WallRun::OnActionRemoved_Implementation(AActor* InInstigator)
@@ -35,6 +43,12 @@ void UCAction_WallRun::OnActionRemoved_Implementation(AActor* InInstigator)
 	Super::OnActionRemoved_Implementation(InInstigator);
 
 	Character->GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &UCAction_WallRun::OnCapsuleComponentHit);
+
+	if (const APlayerController* PlayerController = Character->GetController<APlayerController>())
+	{
+		PlayerController->PlayerCameraManager->RemoveCameraModifier(AppliedCameraModifierLeft);
+		PlayerController->PlayerCameraManager->RemoveCameraModifier(AppliedCameraModifierRight);
+	}
 }
 
 void UCAction_WallRun::StartAction_Implementation(AActor* InInstigator)
@@ -110,12 +124,7 @@ void UCAction_WallRun::BeginWallRun()
 		
 		return;
 	}
-
-	if (const APlayerController* PlayerController = Character->GetController<APlayerController>())
-	{
-		AppliedCameraModifier = PlayerController->PlayerCameraManager->AddNewCameraModifier(IsWallOnTheLeft(WallRunHit) ? LeftWallRunCameraModifier : RightWallRunCameraModifier);
-	}
-
+	
 	GetOwningComponent()->ActiveGameplayTags.AppendTags(WallRunningTags);
 	Character->Landed(WallRunHit);
 	Character->SetActorLocation(WallRunHit.ImpactPoint + WallRunHit.ImpactNormal * 60.f);
@@ -126,6 +135,8 @@ void UCAction_WallRun::BeginWallRun()
 
 	const FString Message = FString::Printf(TEXT("%s engaged."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
+
+	IsWallOnTheLeft(WallRunHit) ? AppliedCameraModifierLeft->EnableModifier() : AppliedCameraModifierRight->EnableModifier();
 }
 
 void UCAction_WallRun::EndWallRun()
@@ -134,17 +145,17 @@ void UCAction_WallRun::EndWallRun()
 	MovementComponent = Character->GetCharacterMovement();
 	MovementComponent->SetPlaneConstraintEnabled(false);
 	MovementComponent->SetMovementMode(MOVE_Falling);
-
-	if (const APlayerController* PlayerController = Character->GetController<APlayerController>())
-	{
-		PlayerController->PlayerCameraManager->RemoveCameraModifier(AppliedCameraModifier);
-	}
 	
 	MovementComponent->GravityScale = 1.f;
 	bWallRunning = false;
 
 	const FString Message = FString::Printf(TEXT("%s disengaged."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
+
+	if (bWasLastWallRunOnLeft)
+		AppliedCameraModifierLeft->DisableModifier();
+	else
+		AppliedCameraModifierRight->DisableModifier();
 }
 
 bool UCAction_WallRun::FindRunnableWall(FHitResult& OutWallHit) const
@@ -193,9 +204,10 @@ bool UCAction_WallRun::FindRunnableWall(FHitResult& OutWallHit) const
 	return false;
 }
 
-bool UCAction_WallRun::IsWallOnTheLeft(const FHitResult& InWallHit) const
+bool UCAction_WallRun::IsWallOnTheLeft(const FHitResult& InWallHit)
 {
-	return FVector::DotProduct(Character->GetActorRightVector(), InWallHit.ImpactNormal) > 0.f;
+	bWasLastWallRunOnLeft = FVector::DotProduct(Character->GetActorRightVector(), InWallHit.ImpactNormal) > 0.f;
+	return bWasLastWallRunOnLeft;
 }
 
 void UCAction_WallRun::OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,

@@ -7,6 +7,8 @@
 #include "Components/ActorComponent.h"
 #include "CActionComponent.generated.h"
 
+class UCSaveGame;
+class ACCommonCharacter;
 class UCAction;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnActionStateChanged, UCActionComponent*, OwningComponent, UCAction*, Action, bool, bAutoAdded);
@@ -23,7 +25,7 @@ public:
 	 * @return If the actor has an action component this function will return that component, otherwise nullptr
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Actions")
-	static UCActionComponent* GetActionComponent(const AActor* FromActor);
+	static UCActionComponent* GetActionComponent(AActor* FromActor);
 	
 	// Sets default values for this component's properties
 	UCActionComponent();
@@ -78,7 +80,7 @@ public:
 	 * @param ActionClass The class of the action to look for
 	 * @return The action of that class, if found, else nullptr
 	 */
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = "Actions")
 	UCAction* GetAction(TSubclassOf<UCAction> ActionClass);
 
 protected:
@@ -86,6 +88,10 @@ protected:
 	virtual void BeginPlay() override;
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	void LoadActions();
+
+	void SaveActions();
 
 	bool IsActionTagTaken(FGameplayTag ActionTag);
 

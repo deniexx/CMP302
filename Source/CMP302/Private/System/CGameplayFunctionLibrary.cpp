@@ -102,6 +102,19 @@ ACProjectile* UCGameplayFunctionLibrary::SpawnProjectile(const UObject* WorldCon
 	return Projectile;
 }
 
+ACProjectile* UCGameplayFunctionLibrary::SpawnProjectileWithStarAndEndPosition(const UObject* WorldContextObject,
+	TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character, FVector Start, FVector End)
+{
+	const FRotator ProjectileRotation = FRotationMatrix::MakeFromX(End - Start).Rotator();
+	const FTransform SpawnTransform = FTransform(ProjectileRotation, Start);
+	ACProjectile* Projectile = WorldContextObject->GetWorld()->SpawnActorDeferred<ACProjectile>(ProjectileClass, SpawnTransform,
+					Character, Character, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		
+	Projectile->FinishSpawning(SpawnTransform);
+
+	return Projectile;
+}
+
 UCStatusReportSubsystem* UCGameplayFunctionLibrary::GetStatusReportSubsystem(const UObject* WorldContextObject)
 {
 	const UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);

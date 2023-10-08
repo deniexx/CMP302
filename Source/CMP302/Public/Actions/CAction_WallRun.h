@@ -64,7 +64,12 @@ private:
 	bool bWallRunning = false;
 	
 	UPROPERTY()
-	UCameraModifier* AppliedCameraModifier;
+	UCameraModifier* AppliedCameraModifierLeft;
+
+	UPROPERTY()
+	UCameraModifier* AppliedCameraModifierRight;
+
+	bool bWasLastWallRunOnLeft;
 
 	UPROPERTY()
 	FHitResult WallRunHit;
@@ -75,7 +80,7 @@ private:
 
 	bool FindRunnableWall(FHitResult& OutWallHit) const;
 
-	bool IsWallOnTheLeft(const FHitResult& InWallHit) const;
+	bool IsWallOnTheLeft(const FHitResult& InWallHit);
 
 	UFUNCTION()
 	void OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

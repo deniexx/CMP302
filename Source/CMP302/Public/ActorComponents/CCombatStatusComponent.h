@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "CMP302/CCustomTypes.h"
 #include "Components/ActorComponent.h"
+#include "System/TweenSubsystem.h"
 #include "CCombatStatusComponent.generated.h"
 
 class ACCommonCharacter;
@@ -81,25 +82,21 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float ColorLerpSpeed;
 
+	FTweenHandle TweenHandle;
+
 	/** Current attack status type */
 	UPROPERTY(BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	EAttackStatusType PreviousAttackStatus = EAttackStatusType::None;
 
 	bool bCanChangeStatus;
 
-	UFUNCTION()
-	void OnForceAttackStatus_TimerElapsed();
-
-	UFUNCTION()
-	void OnIgnoreHits_TimerElapsed();
-
 	UPROPERTY()
 	FTimerHandle ForceAttackStatusHandle;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UFUNCTION()
+	void TweenColour(float Value);
 
+public:	
 	/**
 	 * Updates the attack status type and broadcasts a delegate
 	 * @param NewAttackStatusType The new attack status type to be applied
@@ -109,15 +106,20 @@ public:
 	/**
 	 * Forces the attack status to be a certain type for a given duration
 	 * @param NewAttackStatusType The new attack status type to be applied
-	 * @param Duration The duration this new attack status type to be active for, we will return to the previous one after this duration
 	 */
-	void ForceAttackStatusTypeForDuration(EAttackStatusType NewAttackStatusType, float Duration);
+	void ForceAttackStatusType(EAttackStatusType NewAttackStatusType);
+
+	/**
+	 * Forces an attack status to be on and disables the ability to switch to another one
+	 * @param bReturnToPrevious Should we return to the previous attack status
+	 */
+	void StopForceAttackStatusType(bool bReturnToPrevious = false);
 
 	/**
 	 * Sets the character to ignore hits (can't be hit) for a specified duration
-	 * @param Duration The duration for which to ignore the hits
+	 * @param bActive Whether we should ignore hits or not, True - Ignore hits, False - Do not ignore
 	 */
-	void IgnoreHitsForDuration(float Duration);
+	void SetIgnoreHits(bool bActive);
 
 	/**
 	 * Gets the attack status of the character

@@ -5,6 +5,7 @@
 
 #include "ActorComponents/CCombatStatusComponent.h"
 #include "Character/CCommonCharacter.h"
+#include "Projectiles/CProjectile.h"
 #include "System/CGameplayFunctionLibrary.h"
 
 void UCAction_Sword::OnActionAdded_Implementation(AActor* InInstigator)
@@ -48,8 +49,9 @@ void UCAction_Sword::StartAction_Implementation(AActor* InInstigator)
 	{
 		SwordMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		Character->PlayAnimMontage(AnimMontage);
-
+		
 		SnapToTargetIfPossible(Character);
+		ReflectProjectileIfPossible(Character);
 	}
 }
 
@@ -100,8 +102,42 @@ void UCAction_Sword::SnapToTargetIfPossible(ACCommonCharacter* Character) const
 				if (EndLocation.Z > ActorLocation.Z)
 					EndLocation.Z = ActorLocation.Z;
 				Character->SetActorLocation(EndLocation, true);
+
+				UCGameplayFunctionLibrary::AddStatusReportMessage(Character, TEXT("Boosting to enemy to slice"));
 				break;
 			}
+		}
+	}
+}
+
+void UCAction_Sword::ReflectProjectileIfPossible(ACCommonCharacter* Character) const
+{
+	const FVector TraceStart = Character->GetActorLocation();
+	const FVector TraceEnd = TraceStart + (Character->GetControlRotation().Vector() * MaxReflectDistance);
+	FCollisionQueryParams QueryParams;
+
+	FCollisionShape Shape;
+	Shape.SetSphere(ReflectSphereSize);
+	QueryParams.AddIgnoredActor(Character);
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1); // Projectile channel
+
+	TArray<FHitResult> HitResults;
+	
+	if (GetWorld()->SweepMultiByObjectType(HitResults, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, QueryParams))
+	{
+		for (const FHitResult& HitResult : HitResults)
+		{
+			ACProjectile* Projectile = Cast<ACProjectile>(HitResult.GetActor());
+			if (!Projectile) continue;
+
+			const FVector EndPosition = Projectile->GetOwner()->GetActorLocation();
+			ACProjectile* SpawnedProjectile = UCGameplayFunctionLibrary::SpawnProjectileWithStarAndEndPosition(Character, Projectile->StaticClass(), Character, HitResult.ImpactPoint, EndPosition);
+			SpawnedProjectile->SetAttackStatus(EAttackStatusType::White);
+			UCGameplayFunctionLibrary::AddStatusReportMessage(Character, TEXT("Successfully reflected attack"));
+			
+			Projectile->Destroy();
 		}
 	}
 }

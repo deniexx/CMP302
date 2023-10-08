@@ -157,9 +157,6 @@ protected:
 	/** A tutorial text to display */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	FString ActionTutorialText;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	bool bDisplayTutorial;
 	
 	/** Handle of the cooldown timer */
 	UPROPERTY()

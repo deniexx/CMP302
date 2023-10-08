@@ -5,6 +5,7 @@
 #include "Character/CCommonCharacter.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
+#include "System/TweenSubsystem.h"
 
 static TAutoConsoleVariable<int32> CVarImmortal(
 	TEXT("Immortal"),
@@ -28,7 +29,7 @@ UCCombatStatusComponent* UCCombatStatusComponent::GetCombatStatusComponent(const
 // Sets default values for this component's properties
 UCCombatStatusComponent::UCCombatStatusComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	bCanBeHit = true;
 	bCanChangeStatus = true;
@@ -36,39 +37,12 @@ UCCombatStatusComponent::UCCombatStatusComponent()
 	ColorLerpSpeed = 1.f;
 }
 
-void UCCombatStatusComponent::OnForceAttackStatus_TimerElapsed()
+void UCCombatStatusComponent::TweenColour(float Value)
 {
-	bCanChangeStatus = true;
-	UpdateAttackStatusType(PreviousAttackStatus);
-	ForceAttackStatusHandle.Invalidate();
-}
-
-void UCCombatStatusComponent::OnIgnoreHits_TimerElapsed()
-{
-	bCanBeHit = true;
-}
-
-// Called every frame
-void UCCombatStatusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	/** Lerp smoothly between the previous and the current attack status color */
-	if (ColorLerpAlpha < 1)
-	{
-		const FLinearColor Color = FMath::Lerp(PreviousAttackStatusColor, CurrentAttackStatusColor, ColorLerpAlpha);
-		UKismetMaterialLibrary::SetVectorParameterValue(CharacterOwner, PlayerMaterialParameters,
-				TEXT("PlayerAttackStatusColor"), Color);
-
-		ColorLerpAlpha += DeltaTime * ColorLerpSpeed;
-	}
-
-	if (!bCanChangeStatus)
-	{
-		const float DurationLeft = ForceAttackStatusHandle.IsValid() ? GetWorld()->GetTimerManager().GetTimerRemaining(ForceAttackStatusHandle) / 5.f : 1.f ;
-		
-		UKismetMaterialLibrary::SetScalarParameterValue(CharacterOwner, UIMaterialParameters, TEXT("OverloadTimerProgress"), DurationLeft);
-	}
+	//Value = 1 - (FMath::Cos((Value * UE_PI) / 2));
+	const FLinearColor Color = FMath::Lerp(PreviousAttackStatusColor, CurrentAttackStatusColor, Value);
+	UKismetMaterialLibrary::SetVectorParameterValue(CharacterOwner, PlayerMaterialParameters,
+			TEXT("PlayerAttackStatusColor"), Color);
 }
 
 void UCCombatStatusComponent::Init()
@@ -94,7 +68,8 @@ void UCCombatStatusComponent::Init()
 
 bool UCCombatStatusComponent::CheckCanBeHit(const FAttackData& AttackData) const
 {
-	const bool bImmortal = CVarImmortal.GetValueOnAnyThread() > 0;
+	/* Only player is immortal */
+	const bool bImmortal = CVarImmortal.GetValueOnAnyThread() > 0 && AttackData.AttackStatusType == EAttackStatusType::Enemy;
 	
 	if (bImmortal || !bCanBeHit)
 	{
@@ -139,26 +114,34 @@ void UCCombatStatusComponent::UpdateAttackStatusType(EAttackStatusType NewAttack
 	ColorLerpAlpha = 0.f;
 	PreviousAttackStatusColor =  UKismetMaterialLibrary::GetVectorParameterValue(CharacterOwner, PlayerMaterialParameters, TEXT("PlayerAttackStatusColor"));
 	CurrentAttackStatusColor = UCGameplayFunctionLibrary::GetColorFromAttackStatus(AttackStatusType);
+
+	if (TweenHandle.IsValid()) return;
+	
+	UTweenSubsystem* TweenWorldSubsystem = CharacterOwner->GetGameInstance()->GetSubsystem<UTweenSubsystem>();
+	FTweenDynamicDelegate Delegate;
+	Delegate.BindDynamic(this, &ThisClass::TweenColour);
+	TweenWorldSubsystem->AddTween(TweenHandle, 0, 1, Delegate, 1, ETweenFunction::EaseInOutQuint);
 }
 
-void UCCombatStatusComponent::ForceAttackStatusTypeForDuration(EAttackStatusType NewAttackStatusType, float Duration)
+void UCCombatStatusComponent::ForceAttackStatusType(EAttackStatusType NewAttackStatusType)
 {
 	if (!bCanChangeStatus) return;
 	
 	UpdateAttackStatusType(NewAttackStatusType);
 	bCanChangeStatus = false;
-	
-	GetWorld()->GetTimerManager().SetTimer(ForceAttackStatusHandle, this, &UCCombatStatusComponent::OnForceAttackStatus_TimerElapsed, Duration);
 }
 
-void UCCombatStatusComponent::IgnoreHitsForDuration(float Duration)
+void UCCombatStatusComponent::StopForceAttackStatusType(bool bReturnToPrevious)
 {
-	if (!bCanBeHit) return;
+	bCanChangeStatus = true;
 
-	bCanBeHit = false;
+	if (bReturnToPrevious)
+		UpdateAttackStatusType(PreviousAttackStatus);
+}
 
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UCCombatStatusComponent::OnIgnoreHits_TimerElapsed, Duration);
+void UCCombatStatusComponent::SetIgnoreHits(bool bActive)
+{
+	bCanBeHit = bActive;
 }
 
 bool UCCombatStatusComponent::TryRegisterHit(const FAttackData& AttackData)
@@ -168,7 +151,7 @@ bool UCCombatStatusComponent::TryRegisterHit(const FAttackData& AttackData)
 	// If we can't be hit, return false and exit the function
 	if (!bCanRegisterHit)
 	{
-		return bCanRegisterHit;
+		return false;
 	}
 
 	// @TODO: Potentially claim a kill if we implement an interface (can be used to track certain statistics)

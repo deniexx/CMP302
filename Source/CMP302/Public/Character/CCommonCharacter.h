@@ -39,8 +39,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	UCCombatStatusComponent* CombatComponent;
 
-	/** Action Component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCActionComponent* ActionComponent;
 
 	/** This function is bound to the hit taken delegate on the combat component */
@@ -57,9 +56,11 @@ protected:
 	/** The appearance alpha value */
 	float AppearanceAlpha;
 
-public:
+	virtual void TweenAppearance(float Value);
 
-	virtual void Tick(float DeltaSeconds) override;
+	void StartTweenAppearance();
+
+public:
 
 	virtual void Landed(const FHitResult& Hit) override;
 

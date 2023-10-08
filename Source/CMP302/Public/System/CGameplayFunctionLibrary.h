@@ -57,6 +57,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static ACProjectile* SpawnProjectile(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character);
 
+	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
+	static ACProjectile* SpawnProjectileWithStarAndEndPosition(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character, FVector Start, FVector End);
+
 	/**
 	 * Gets the status report subsystem
 	 * @param WorldContextObject Object used to get the world
