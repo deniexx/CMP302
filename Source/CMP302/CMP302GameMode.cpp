@@ -8,6 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "System/CSaveGame.h"
 #include "UObject/ConstructorHelpers.h"
+#include "CRoomManager.h"
+#include "Character/CPlayerCharacter.h"
 
 ACMP302GameMode::ACMP302GameMode()
 	: Super()
@@ -37,9 +39,9 @@ void ACMP302GameMode::InitGame(const FString& MapName, const FString& Options, F
 	LoadGame();
 }
 
-UCSaveGame* ACMP302GameMode::GetSaveGame() const
+void ACMP302GameMode::RespawnEnemiesAtRoomIndex(int32 Index)
 {
-	return CurrentSaveGame;
+
 }
 
 void ACMP302GameMode::LoadGame()
@@ -55,7 +57,26 @@ void ACMP302GameMode::LoadGame()
 	}
 }
 
+UCSaveGame* ACMP302GameMode::GetSaveGame() const
+{
+	return CurrentSaveGame;
+}
+
 void ACMP302GameMode::WriteSaveGame()
 {
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SaveSlotName, 0);
+}
+
+void ACMP302GameMode::AddRoomManager(ACRoomManager* RoomManager)
+{
+	if (RoomManager)
+	{
+		RoomManager->SetRoomIndex(RoomManagers.AddUnique(RoomManager));
+	}
+}
+
+void ACMP302GameMode::BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player)
+{
+	if (Player)
+		Player->OnPlayerHit.AddDynamic(this, &ThisClass::RespawnEnemiesAtRoomIndex);
 }

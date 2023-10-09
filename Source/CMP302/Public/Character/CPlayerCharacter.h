@@ -14,6 +14,8 @@ class UInputAction;
 class UInputMappingContext;
 class USkeletalMeshComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerHit, int32, RoomIndex);
+
 /**
  * 
  */
@@ -25,6 +27,8 @@ class CMP302_API ACPlayerCharacter : public ACCommonCharacter
 public:
 
 	ACPlayerCharacter(const FObjectInitializer& ObjectInitializer);
+
+	FOnPlayerHit OnPlayerHit;
 
 protected:
 
@@ -157,6 +161,8 @@ private:
 	FTransform SpawnTransform;
 
 	bool bResetTransform;
+
+	int32 RoomIndex;
 
 	virtual void OnHitTaken(const FAttackData& AttackData) override;
 

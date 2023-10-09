@@ -6,6 +6,7 @@
 #include "Kismet/KismetMaterialLibrary.h"
 #include "System/CGameplayFunctionLibrary.h"
 #include "System/TweenSubsystem.h"
+#include "CLogChannels.h"
 
 static TAutoConsoleVariable<int32> CVarImmortal(
 	TEXT("Immortal"),
@@ -40,6 +41,7 @@ UCCombatStatusComponent::UCCombatStatusComponent()
 void UCCombatStatusComponent::TweenColour(float Value)
 {
 	//Value = 1 - (FMath::Cos((Value * UE_PI) / 2));
+	UE_LOG(LogCMP, Warning, TEXT("Value: %.2f"), Value);
 	const FLinearColor Color = FMath::Lerp(PreviousAttackStatusColor, CurrentAttackStatusColor, Value);
 	UKismetMaterialLibrary::SetVectorParameterValue(CharacterOwner, PlayerMaterialParameters,
 			TEXT("PlayerAttackStatusColor"), Color);

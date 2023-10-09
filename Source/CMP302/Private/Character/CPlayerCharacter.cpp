@@ -11,6 +11,7 @@
 #include "ActorComponents/CInteractionComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "../CMP302GameMode.h"
 
 ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCExtendedCharacterMovement>(CharacterMovementComponentName))
@@ -31,6 +32,7 @@ ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	bResetTransform = false;
 	bInputSetup = false;
 	bDead = false;
+	RoomIndex = 0;
 }
 
 void ACPlayerCharacter::BeginPlay()
@@ -38,6 +40,9 @@ void ACPlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	APlayerController* PlayerController = GetController<APlayerController>();
+
+	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
+	GameMode->BindToOnHitDelegateForPlayer(this);
 	
 	PlayerController->SetIgnoreLookInput(true);
 	PlayerController->SetIgnoreMoveInput(true);
@@ -50,6 +55,7 @@ void ACPlayerCharacter::OnHitTaken(const FAttackData& AttackData)
 {
 	Super::OnHitTaken(AttackData);
 
+	OnPlayerHit.Broadcast(RoomIndex);
 	bResetTransform = true;
 	ReadyActor();
 }

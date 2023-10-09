@@ -7,6 +7,8 @@
 #include "CMP302GameMode.generated.h"
 
 class UCSaveGame;
+class ACRoomManager;
+class ACPlayerCharacter;
 
 UCLASS(minimalapi)
 class ACMP302GameMode : public AGameModeBase
@@ -26,8 +28,14 @@ public:
 
 	void WriteSaveGame();
 
+	void AddRoomManager(ACRoomManager* RoomManager);
+
+	void BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player);
+
 private:
 	
+	void RespawnEnemiesAtRoomIndex(int32 Index);
+
 	void LoadGame();
 
 	UPROPERTY(EditDefaultsOnly)
@@ -38,6 +46,9 @@ private:
 
 	UPROPERTY()
 	UCSaveGame* CurrentSaveGame;
+
+	UPROPERTY()
+	TArray<ACRoomManager*> RoomManagers;
 };
 
 
