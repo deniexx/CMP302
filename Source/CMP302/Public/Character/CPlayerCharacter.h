@@ -156,7 +156,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag OverloadActionTag;
 
-	bool bInputSetup;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	FGameplayTag InputBlockTag;
 
 	FTransform SpawnTransform;
 
@@ -168,9 +169,9 @@ private:
 
 	virtual void ReadyActor() override;
 
-	void SetUpPlayerForPlay();
+	virtual void TweenAppearance(float Value) override;
 
-	virtual void TweenAppearance(float Value);
+	virtual void PawnClientRestart() override;
 
 public:
 

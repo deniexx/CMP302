@@ -7,6 +7,31 @@
 #include "CSaveGame.generated.h"
 
 class UCAction;
+
+USTRUCT()
+struct FActorSaveData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString ActorName;
+
+	UPROPERTY()
+	bool bCleared = false;
+};
+
+USTRUCT()
+struct FPlayerSpawnData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName LevelName;
+	
+	UPROPERTY()
+	FTransform Transform;
+};
+
 /**
  * 
  */
@@ -20,4 +45,13 @@ public:
 
 	UPROPERTY()
 	TArray<TSubclassOf<UCAction>> PlayerActions;
+
+	UPROPERTY()
+	TArray<FActorSaveData> SaveData;
+	
+	UPROPERTY()
+	TArray<FPlayerSpawnData> SpawnData;
+
+	UPROPERTY()
+	int32 Currency = 0;
 };

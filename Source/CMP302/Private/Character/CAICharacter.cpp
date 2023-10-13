@@ -64,8 +64,7 @@ void ACAICharacter::TweenAppearance(float Value)
 
 	if (bDead && Value <= 0.f)
 	{
-		GetMesh()->SetSimulatePhysics(false);
-		GetMesh()->SetCollisionProfileName("NoCollision");
+		Destroy();
 	}
 }
 

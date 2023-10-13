@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "CRoomManager.generated.h"
 
+class UBoxComponent;
+class ACEnemySpawner;
+
 UCLASS()
 class CMP302_API ACRoomManager : public AActor
 {
@@ -14,12 +17,36 @@ class CMP302_API ACRoomManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ACRoomManager();
+	
+	void EnemyKilled();
+
+	void SpawnEnemies();
+
+	bool GetIsCleared() const;
+
+	void SetIsCleared(bool bNewState);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	int32 RoomIndex;
+	void RoomCleared();
+
+	uint32 RoomIndex;
+
+	uint32 RemainingEnemies;
+	
+	bool bRoomCleared;
+
+	UPROPERTY(EditAnywhere, Category = "Spawn")
+	TArray<ACEnemySpawner*> EnemySpawners;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UBoxComponent* RoomExtends;
+
+	UFUNCTION()
+	void OnRoomEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 
 public:
 

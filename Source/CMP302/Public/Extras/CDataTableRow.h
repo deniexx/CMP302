@@ -19,7 +19,4 @@ struct FCPurchasableDataTableRow : public FTableRowBase
 	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UCAction> ActionClass;
-
-	UPROPERTY(EditDefaultsOnly)
-	int32 Cost;
 };

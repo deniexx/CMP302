@@ -12,6 +12,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "../CMP302GameMode.h"
+#include "System/CSaveGame.h"
 
 ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCExtendedCharacterMovement>(CharacterMovementComponentName))
@@ -30,7 +31,6 @@ ACPlayerCharacter::ACPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -165.f));
 	
 	bResetTransform = false;
-	bInputSetup = false;
 	bDead = false;
 	RoomIndex = 0;
 }
@@ -39,17 +39,33 @@ void ACPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	APlayerController* PlayerController = GetController<APlayerController>();
-
 	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
 	GameMode->BindToOnHitDelegateForPlayer(this);
 	
-	PlayerController->SetIgnoreLookInput(true);
-	PlayerController->SetIgnoreMoveInput(true);
+	const UCSaveGame* SaveGame = GameMode->GetSaveGame();
+	const FName LevelName = *GetWorld()->GetMapName();
+	bool bMatch = false;
+	for (const FPlayerSpawnData& SpawnData : SaveGame->SpawnData)
+	{
+		
+		if (LevelName == SpawnData.LevelName)
+		{
+			SpawnTransform = SpawnData.Transform;
+			bMatch = true;
+			break;
+		}
+	}
 
-	SpawnTransform = GetActorTransform();
+	if (!bMatch)
+	{
+		SpawnTransform = GetActorTransform();
+	}
+	
+	bResetTransform = true;
 	ReadyActor();
 }
+
+
 
 void ACPlayerCharacter::OnHitTaken(const FAttackData& AttackData)
 {
@@ -64,26 +80,12 @@ void ACPlayerCharacter::ReadyActor()
 {
 	Super::ReadyActor();
 
+	ActionComponent->ActiveGameplayTags.AddTag(InputBlockTag);
+
 	if (bResetTransform)
 	{
 		bResetTransform = false;
 		SetActorTransform(SpawnTransform, false, nullptr, ETeleportType::ResetPhysics);
-	}
-}
-
-void ACPlayerCharacter::SetUpPlayerForPlay()
-{
-	if (bInputSetup) return;
-	
-	if (APlayerController* PlayerController = GetController<APlayerController>())
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-			PlayerController->SetIgnoreLookInput(false);
-			PlayerController->SetIgnoreMoveInput(false);
-			bInputSetup = true;
-		}
 	}
 }
 
@@ -92,7 +94,20 @@ void ACPlayerCharacter::TweenAppearance(float Value)
 	Super::TweenAppearance(Value);
 
 	if (Value >= 1.f)
-		SetUpPlayerForPlay();
+		ActionComponent->ActiveGameplayTags.RemoveTag(InputBlockTag);
+}
+
+void ACPlayerCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	if (APlayerController* PlayerController = GetController<APlayerController>())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -137,10 +152,38 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 void ACPlayerCharacter::SetSpawnTransform(const FTransform& InSpawnTransform)
 {
 	SpawnTransform = InSpawnTransform;
+
+	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
+	UCSaveGame* SaveGame = GameMode->GetSaveGame();
+
+	bool bMatch = false;
+	const FName LevelName = *GetWorld()->GetMapName();
+	for (FPlayerSpawnData& SpawnData : SaveGame->SpawnData)
+	{
+		if (SpawnData.LevelName == LevelName)
+		{
+			SpawnData.Transform = SpawnTransform;
+			bMatch = true;
+			break;
+		}
+	}
+
+	if (!bMatch)
+	{
+		FPlayerSpawnData SpawnData;
+		SpawnData.LevelName = LevelName;
+		SpawnData.Transform = SpawnTransform;
+		SaveGame->SpawnData.Add(SpawnData);
+	}
+	
+	GameMode->WriteSaveGame();
 }
 
 void ACPlayerCharacter::Move(const FInputActionValue& Value)
 {
+	if (ActionComponent->ActiveGameplayTags.HasTagExact(InputBlockTag))
+		return;
+	
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -152,6 +195,9 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 
 void ACPlayerCharacter::Look(const FInputActionValue& Value)
 {
+	if (ActionComponent->ActiveGameplayTags.HasTagExact(InputBlockTag))
+		return;
+	
 	const FVector2D LookVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)

@@ -10,6 +10,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "CRoomManager.h"
 #include "Character/CPlayerCharacter.h"
+#include "Character/CPlayerState.h"
 
 ACMP302GameMode::ACMP302GameMode()
 	: Super()
@@ -41,7 +42,7 @@ void ACMP302GameMode::InitGame(const FString& MapName, const FString& Options, F
 
 void ACMP302GameMode::RespawnEnemiesAtRoomIndex(int32 Index)
 {
-
+	//RoomManagers[Index]->SpawnEnemies();
 }
 
 void ACMP302GameMode::LoadGame()
@@ -64,6 +65,16 @@ UCSaveGame* ACMP302GameMode::GetSaveGame() const
 
 void ACMP302GameMode::WriteSaveGame()
 {
+	CurrentSaveGame->SaveData.Empty();
+	
+	for (const ACRoomManager* RoomManager : RoomManagers)
+	{
+		FActorSaveData SaveData;
+		SaveData.ActorName = RoomManager->GetName();
+		SaveData.bCleared = RoomManager->GetIsCleared();
+		CurrentSaveGame->SaveData.Add(SaveData);
+	}
+	
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SaveSlotName, 0);
 }
 
@@ -72,6 +83,15 @@ void ACMP302GameMode::AddRoomManager(ACRoomManager* RoomManager)
 	if (RoomManager)
 	{
 		RoomManager->SetRoomIndex(RoomManagers.AddUnique(RoomManager));
+	
+		for (const FActorSaveData& SaveData : CurrentSaveGame->SaveData)
+		{
+			if (SaveData.ActorName == RoomManager->GetName())
+			{
+				RoomManager->SetIsCleared(SaveData.bCleared);
+				break;
+			}
+		}
 	}
 }
 

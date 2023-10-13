@@ -97,6 +97,22 @@ public:
 
 	/** Gets the world the action lives in */
 	virtual UWorld* GetWorld() const override;
+
+	/** The icon of the action */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSoftObjectPtr<UTexture2D> Icon;
+
+	/** A name used for the UI */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	FText ActionName;
+
+	/** A description used for the UI */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (MultiLine = 3))
+	FText ActionDescription;
+
+	/** The cost of the action */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shop")
+	int32 Cost;
 	
 protected:
 
@@ -137,19 +153,7 @@ protected:
 	/** The instigator of this action */
 	UPROPERTY(BlueprintReadOnly)
 	AActor* InstigatorActor;
-
-	/** The icon of the action */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSoftObjectPtr<UTexture2D> Icon;
-
-	/** A name used for the UI */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	FText ActionName;
-
-	/** A description used for the UI */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (MultiLine = 3))
-	FText ActionDescription;
-
+	
 	/** The keys used for this action */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TArray<FString> ActionKeys;

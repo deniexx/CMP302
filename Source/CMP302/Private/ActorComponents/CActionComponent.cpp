@@ -117,6 +117,9 @@ void UCActionComponent::RemoveActionByClass(TSubclassOf<UCAction> ActionToRemove
 
 bool UCActionComponent::StartActionByTag(AActor* Instigator, FGameplayTag ActionTag)
 {
+	if (ActiveGameplayTags.HasAnyExact(BlockTags))
+		return false;
+	
 	for (UCAction* Action : Actions)
 	{
 		if (Action && Action->ActionTag.MatchesTagExact(ActionTag))
