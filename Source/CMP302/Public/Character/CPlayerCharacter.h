@@ -8,11 +8,12 @@
 #include "CPlayerCharacter.generated.h"
 
 class UCInteractionComponent;
-struct FInputActionValue;
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
 class USkeletalMeshComponent;
+
+struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerHit, int32, RoomIndex);
 
@@ -158,6 +159,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag InputBlockTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	FGameplayTagContainer InputBlockingTags;
 
 	FTransform SpawnTransform;
 

@@ -20,18 +20,6 @@ struct FActorSaveData
 	bool bCleared = false;
 };
 
-USTRUCT()
-struct FPlayerSpawnData
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FName LevelName;
-	
-	UPROPERTY()
-	FTransform Transform;
-};
-
 /**
  * 
  */
@@ -50,7 +38,7 @@ public:
 	TArray<FActorSaveData> SaveData;
 	
 	UPROPERTY()
-	TArray<FPlayerSpawnData> SpawnData;
+	TMap<FString, FTransform> SpawnTransforms;
 
 	UPROPERTY()
 	int32 Currency = 0;

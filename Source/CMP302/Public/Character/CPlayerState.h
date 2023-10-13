@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerState.h"
 #include "CPlayerState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurrencyUpdated, int32, NewAmount, int32, OldAmount);
+
 /**
  * 
  */
@@ -26,7 +28,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Currency")
 	bool RemoveCurrency(int32 Amount);
 
+	UPROPERTY(BlueprintAssignable, Category = "Currency")
+	FOnCurrencyUpdated OnCurrencyUpdated;
+
 protected:
+	
+	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Currency")
 	int32 Currency;

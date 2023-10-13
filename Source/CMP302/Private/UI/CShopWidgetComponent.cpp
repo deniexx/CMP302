@@ -25,6 +25,11 @@ void UCShopWidgetComponent::Init(TSubclassOf<UCAction> ActionClass)
 	Description->SetText(ActionT->ActionDescription);
 	Price->SetText(FText::AsNumber(ActionT->Cost));
 	Cost = ActionT->Cost;
+
+	UCActionComponent* ActionComponent = UCActionComponent::GetActionComponent(GetOwningPlayerPawn());
+	const bool bTaken = ActionComponent->IsActionTagTaken(ActionT->ActionTag);
+	Background->SetIsEnabled(!bTaken);
+	DisabledOverlay->SetVisibility(bTaken ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
 void UCShopWidgetComponent::NativeConstruct()

@@ -43,20 +43,13 @@ void ACPlayerCharacter::BeginPlay()
 	GameMode->BindToOnHitDelegateForPlayer(this);
 	
 	const UCSaveGame* SaveGame = GameMode->GetSaveGame();
-	const FName LevelName = *GetWorld()->GetMapName();
-	bool bMatch = false;
-	for (const FPlayerSpawnData& SpawnData : SaveGame->SpawnData)
-	{
-		
-		if (LevelName == SpawnData.LevelName)
-		{
-			SpawnTransform = SpawnData.Transform;
-			bMatch = true;
-			break;
-		}
-	}
+	const FString LevelName = GetWorld()->GetMapName();
 
-	if (!bMatch)
+	if (SaveGame->SpawnTransforms.Find(LevelName))
+	{
+		SpawnTransform = SaveGame->SpawnTransforms[LevelName];
+	}
+	else
 	{
 		SpawnTransform = GetActorTransform();
 	}
@@ -156,32 +149,16 @@ void ACPlayerCharacter::SetSpawnTransform(const FTransform& InSpawnTransform)
 	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
 	UCSaveGame* SaveGame = GameMode->GetSaveGame();
 
-	bool bMatch = false;
-	const FName LevelName = *GetWorld()->GetMapName();
-	for (FPlayerSpawnData& SpawnData : SaveGame->SpawnData)
-	{
-		if (SpawnData.LevelName == LevelName)
-		{
-			SpawnData.Transform = SpawnTransform;
-			bMatch = true;
-			break;
-		}
-	}
-
-	if (!bMatch)
-	{
-		FPlayerSpawnData SpawnData;
-		SpawnData.LevelName = LevelName;
-		SpawnData.Transform = SpawnTransform;
-		SaveGame->SpawnData.Add(SpawnData);
-	}
+	const FString LevelName = GetWorld()->GetMapName();
+	
+	SaveGame->SpawnTransforms.Emplace(LevelName, SpawnTransform);
 	
 	GameMode->WriteSaveGame();
 }
 
 void ACPlayerCharacter::Move(const FInputActionValue& Value)
 {
-	if (ActionComponent->ActiveGameplayTags.HasTagExact(InputBlockTag))
+	if (ActionComponent->ActiveGameplayTags.HasAnyExact(InputBlockingTags))
 		return;
 	
 	const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -195,7 +172,7 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 
 void ACPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	if (ActionComponent->ActiveGameplayTags.HasTagExact(InputBlockTag))
+	if (ActionComponent->ActiveGameplayTags.HasAnyExact(InputBlockingTags))
 		return;
 	
 	const FVector2D LookVector = Value.Get<FVector2D>();

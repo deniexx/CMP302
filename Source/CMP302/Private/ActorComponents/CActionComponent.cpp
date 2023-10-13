@@ -171,6 +171,11 @@ UCAction* UCActionComponent::GetAction(TSubclassOf<UCAction> ActionClass)
 	return nullptr;
 }
 
+const FGameplayTag& UCActionComponent::GetDefaultBlockedTag()
+{
+	return DefaultBlockedTag;
+}
+
 void UCActionComponent::LoadActions()
 {
 	const ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();

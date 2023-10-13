@@ -34,3 +34,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Attack Data")
 	float ImpactStrength = 300.f;
 };
+
+UENUM(BlueprintType)
+enum class ECInputMode : uint8
+{
+	None,
+	UIOnly,
+	GameOnly,
+};

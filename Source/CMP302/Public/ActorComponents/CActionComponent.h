@@ -82,6 +82,10 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	UCAction* GetAction(TSubclassOf<UCAction> ActionClass);
+	
+	const FGameplayTag& GetDefaultBlockedTag();
+
+	bool IsActionTagTaken(FGameplayTag ActionTag);
 
 protected:
 
@@ -93,8 +97,6 @@ protected:
 
 	void SaveActions();
 
-	bool IsActionTagTaken(FGameplayTag ActionTag); // @TODO: Protected -> Public (use to determine, whether the button should be active)
-
 	/** The starting actions */
 	UPROPERTY(EditAnywhere, Category = "Actions")
 	TArray<TSubclassOf<UCAction>> DefaultActions;
@@ -102,6 +104,9 @@ protected:
 	/** If one of these tags is applied, all actions are blocked from starting */
 	UPROPERTY(EditDefaultsOnly, Category = "Actions")
 	FGameplayTagContainer BlockTags;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Actions")
+	FGameplayTag DefaultBlockedTag;
 
 	/** The currently available actions */
 	UPROPERTY(BlueprintReadOnly)

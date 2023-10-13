@@ -33,6 +33,9 @@ protected:
 	UImage* Icon;
 
 	UPROPERTY(meta = (BindWidget))
+	UImage* DisabledOverlay;
+
+	UPROPERTY(meta = (BindWidget))
 	UButton* Background;
 
 	UPROPERTY(meta = (BindWidget))

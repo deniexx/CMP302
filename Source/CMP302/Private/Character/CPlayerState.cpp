@@ -11,6 +11,15 @@ ACPlayerState::ACPlayerState()
 	Currency = 0;
 }
 
+void ACPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	const ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
+	if (const UCSaveGame* SaveGame = GameMode->GetSaveGame())
+		AddCurrency(SaveGame->Currency);
+}
+
 int32 ACPlayerState::GetCurrency()
 {
 	return Currency;
@@ -18,8 +27,11 @@ int32 ACPlayerState::GetCurrency()
 
 void ACPlayerState::AddCurrency(int32 Amount)
 {
+	const int32 OldCurrency = Currency;
 	Currency += Amount;
 	SaveCurrency();
+	
+	OnCurrencyUpdated.Broadcast(Currency, OldCurrency);
 }
 
 bool ACPlayerState::RemoveCurrency(int32 Amount)
@@ -29,8 +41,11 @@ bool ACPlayerState::RemoveCurrency(int32 Amount)
 		return false;
 	}
 
+	const int32 OldCurrency = Currency;
 	Currency -= Amount;
 	SaveCurrency();
+
+	OnCurrencyUpdated.Broadcast(Currency, OldCurrency);
 	return true;
 }
 
