@@ -22,6 +22,8 @@ public:
 	void Init(ACRoomManager* InRoomManager);
 
 	int32 SpawnEnemy();
+
+	void KillEnemy();
 	
 protected:
 

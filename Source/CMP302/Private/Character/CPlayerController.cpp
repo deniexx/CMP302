@@ -40,11 +40,13 @@ void ACPlayerController::BackMenu(const FInputActionValue& Value)
 
 	if (UCGameplayUISubsystem* GameplayUISubsystem = GameInstance ? GameInstance->GetSubsystem<UCGameplayUISubsystem>() : nullptr)
 	{
-		if (GameplayUISubsystem->IsWidgetInStack())
-			GameplayUISubsystem->PopWidget(true);
+		if (GameplayUISubsystem->PopWidget())
+		{
+			// We can do stuff here if we want to change something after we pop, but we still have widgets in the stack
+		}
 		else
 		{
-			//EnablePauseMenu(); // @TODO: Add pause menu
+			GameplayUISubsystem->PushWidget(PauseMenuWidget, ECInputMode::UIOnly, true, true);
 		}
 	}
 

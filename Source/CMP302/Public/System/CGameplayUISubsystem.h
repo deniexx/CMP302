@@ -9,6 +9,24 @@
 
 class UUserWidget;
 
+USTRUCT()
+struct FGameplayUIData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	ECInputMode InputMode = ECInputMode::None;
+
+	UPROPERTY()
+	bool bShowMouseCursor = false;
+
+	UPROPERTY()
+	bool bFocusWidget;
+
+	UPROPERTY()
+	UUserWidget* Widget;
+};
+
 /**
  * 
  */
@@ -20,13 +38,10 @@ class CMP302_API UCGameplayUISubsystem : public UGameInstanceSubsystem
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayUI")
-	UUserWidget* PushWidget(TSubclassOf<UUserWidget> WidgetClass, bool bAddToViewport = false);
+	UUserWidget* PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode = ECInputMode::None, bool bShowMouseCursor = false, bool bFocusWidget = false);
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayUI")
-	UUserWidget* PopWidget(bool bRemoveFromViewport = false);
-
-	UFUNCTION(BlueprintCallable, Category = "GameplayUI")
-	void SetInputMode(ECInputMode InputMode, bool bInShowMouseCursor = false, UUserWidget* WidgetToFocus = nullptr);
+	bool PopWidget();
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GameplayUI")
 	bool IsWidgetInStack();
@@ -36,10 +51,12 @@ public:
 protected:
 
 	UPROPERTY()
-	TArray<UUserWidget*> WidgetStack;
+	TArray<FGameplayUIData> WidgetStack;
 
 private:
 
 	UPROPERTY()
 	APlayerController* PlayerController;
+
+	void SetInputMode(const FGameplayUIData& Data);
 };

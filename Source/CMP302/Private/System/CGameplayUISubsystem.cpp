@@ -6,33 +6,52 @@
 #include "ActorComponents/CActionComponent.h"
 #include "Blueprint/UserWidget.h"
 
-UUserWidget* UCGameplayUISubsystem::PushWidget(TSubclassOf<UUserWidget> WidgetClass, bool bAddToViewport)
+UUserWidget* UCGameplayUISubsystem::PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode, bool bShowMouseCursor, bool bFocusWidget)
 {
 	UUserWidget* Widget = CreateWidget(PlayerController, WidgetClass);
-	WidgetStack.Push(Widget);
-
-	if (bAddToViewport)
-		Widget->AddToViewport();
+	FGameplayUIData GameplayUIData;
+	GameplayUIData.InputMode = InputMode;
+	GameplayUIData.bShowMouseCursor= bShowMouseCursor;
+	GameplayUIData.Widget = Widget;
+	GameplayUIData.bFocusWidget = bFocusWidget;
+	
+	WidgetStack.Push(GameplayUIData);
+	
+	Widget->AddToViewport();
+	SetInputMode(GameplayUIData);
 	
 	return Widget;
 }
 
-UUserWidget* UCGameplayUISubsystem::PopWidget(bool bRemoveFromViewport)
+bool UCGameplayUISubsystem::PopWidget()
 {
-	if (WidgetStack.Num() <= 0) return nullptr;
-	
-	UUserWidget* Widget = WidgetStack.Pop();
+	if (WidgetStack.Num() <= 0) return false; // No widgets were in the stack, so we can not remove any
 
-	if (bRemoveFromViewport)
-		Widget->RemoveFromParent();
+	const FGameplayUIData Data = WidgetStack.Pop();
+	Data.Widget->RemoveFromParent();
 	
-	return Widget;
+	if (WidgetStack.Num() > 0)
+	{
+		SetInputMode(WidgetStack.Last());
+	}
+	else
+	{
+		// If we have no elements after the pop, we reset to the default input mode (GameOnly, don't show mouse cursor)
+		FGameplayUIData GameplayUIData;
+		GameplayUIData.InputMode = ECInputMode::GameOnly;
+		GameplayUIData.bShowMouseCursor = false;
+		GameplayUIData.bFocusWidget = false;
+
+		SetInputMode(GameplayUIData);
+	}
+
+	return true; // Widget has been removed from the stack
 }
 
-void UCGameplayUISubsystem::SetInputMode(ECInputMode InputMode, bool bInShowMouseCursor, UUserWidget* WidgetToFocus)
+void UCGameplayUISubsystem::SetInputMode(const FGameplayUIData& Data)
 {
 	UCActionComponent* ActionComponent = UCActionComponent::GetActionComponent(PlayerController->GetPawn());
-	switch (InputMode)
+	switch (Data.InputMode)
 	{
 		case ECInputMode::GameOnly:
 		{
@@ -43,8 +62,8 @@ void UCGameplayUISubsystem::SetInputMode(ECInputMode InputMode, bool bInShowMous
 		case ECInputMode::UIOnly: // This is UI Only!
 		{
 			FInputModeGameAndUI InputModeGameAndUI;
-			if (WidgetToFocus)
-				InputModeGameAndUI.SetWidgetToFocus(WidgetToFocus->TakeWidget());
+			if (Data.bFocusWidget)
+				InputModeGameAndUI.SetWidgetToFocus(Data.Widget->TakeWidget());
 			InputModeGameAndUI.SetLockMouseToViewportBehavior(EMouseLockMode::LockInFullscreen);
 			PlayerController->SetInputMode(InputModeGameAndUI);
 			ActionComponent->ActiveGameplayTags.AddTag(ActionComponent->GetDefaultBlockedTag());
@@ -52,7 +71,7 @@ void UCGameplayUISubsystem::SetInputMode(ECInputMode InputMode, bool bInShowMous
 		}
 	}
 
-	PlayerController->SetShowMouseCursor(bInShowMouseCursor);
+	PlayerController->SetShowMouseCursor(Data.bShowMouseCursor);
 }
 
 void UCGameplayUISubsystem::BindPlayerController(APlayerController* InPlayerController)

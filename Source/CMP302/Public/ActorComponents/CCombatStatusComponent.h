@@ -51,10 +51,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
 	UMaterialParameterCollection* PlayerMaterialParameters;
 
-	/** This will drive player material parameters */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
-	UMaterialParameterCollection* UIMaterialParameters;
-
 private:
 
 	/**

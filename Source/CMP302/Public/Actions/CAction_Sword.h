@@ -36,6 +36,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	TArray<UAnimMontage*> SlashAttackMontages;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
+	UAnimMontage* ReflectAnimMontage;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Snap")
 	float MaxSnapDistance;
 
@@ -48,15 +51,31 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Reflect")
 	float MaxReflectDistance;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float AttackTraceSphereSize;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float AttackTraceWidth;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float AttackTraceLength;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	int32 AttackTraceSphereMaxAmount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	TArray<TEnumAsByte<EObjectTypeQuery>> AttackObjectTypes;
+
 	UPROPERTY()
 	UStaticMeshComponent* SwordMeshComponent;
 
 private:
 
-	UFUNCTION()
-	void OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	bool IsTerrainInFront(ACCommonCharacter* Character) const;
+	
+	bool SnapToTargetIfPossible(ACCommonCharacter* Character) const;
 
-	void SnapToTargetIfPossible(ACCommonCharacter* Character) const;
+	bool ReflectProjectileIfPossible(ACCommonCharacter* Character) const;
 
-	void ReflectProjectileIfPossible(ACCommonCharacter* Character) const;
+	bool TraceForEnemyHits(ACCommonCharacter* Character) const;
 };

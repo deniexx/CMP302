@@ -8,10 +8,12 @@
 #include "Blueprint/UserWidget.h"
 #include "Interfaces/CInteractionInterface.h"
 
-static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(
-	TEXT("sc.DebugDrawInteraction"),
-	false,
-	TEXT("Draw debug sphere for line interaction."),
+static TAutoConsoleVariable<int32> CVarDebugDrawInteraction(
+	TEXT("ShowDebugInteraction"),
+	0,
+	TEXT("Draws debug info about interactions")
+	TEXT(" 0: Do not show debug info/n")
+	TEXT(" 1: Show Debug info/n"),
 	ECVF_Cheat);
 
 // Sets default values for this component's properties
@@ -48,7 +50,7 @@ void UCInteractionComponent::PrimaryInteract()
 
 void UCInteractionComponent::FindBestInteractable()
 {
-	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread() > 0;
 	
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(TraceCollisionChannel);

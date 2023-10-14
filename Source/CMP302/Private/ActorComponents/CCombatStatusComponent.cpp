@@ -7,6 +7,7 @@
 #include "System/CGameplayFunctionLibrary.h"
 #include "System/TweenSubsystem.h"
 #include "CLogChannels.h"
+#include "Blueprint/UserWidget.h"
 
 static TAutoConsoleVariable<int32> CVarImmortal(
 	TEXT("Immortal"),
@@ -40,7 +41,6 @@ UCCombatStatusComponent::UCCombatStatusComponent()
 
 void UCCombatStatusComponent::TweenColour(float Value)
 {
-	//Value = 1 - (FMath::Cos((Value * UE_PI) / 2));
 	UE_LOG(LogCMP, Warning, TEXT("Value: %.2f"), Value);
 	const FLinearColor Color = FMath::Lerp(PreviousAttackStatusColor, CurrentAttackStatusColor, Value);
 	UKismetMaterialLibrary::SetVectorParameterValue(CharacterOwner, PlayerMaterialParameters,
@@ -122,7 +122,7 @@ void UCCombatStatusComponent::UpdateAttackStatusType(EAttackStatusType NewAttack
 	UTweenSubsystem* TweenWorldSubsystem = CharacterOwner->GetGameInstance()->GetSubsystem<UTweenSubsystem>();
 	FTweenDynamicDelegate Delegate;
 	Delegate.BindDynamic(this, &ThisClass::TweenColour);
-	TweenWorldSubsystem->AddTween(TweenHandle, 0, 1, Delegate, 1, ETweenFunction::EaseInOutQuint);
+	TweenWorldSubsystem->AddTween(TweenHandle, 0, 1, Delegate, 4, ETweenFunction::EaseInOutQuint);
 }
 
 void UCCombatStatusComponent::ForceAttackStatusType(EAttackStatusType NewAttackStatusType)

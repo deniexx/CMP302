@@ -20,17 +20,21 @@ public:
 	
 	void EnemyKilled();
 
-	void SpawnEnemies();
-
 	bool GetIsCleared() const;
 
 	void SetIsCleared(bool bNewState);
+
+	void ResetRoom();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void RoomCleared();
+
+	void SpawnEnemies();
+
+	void KillEnemies();
 
 	uint32 RoomIndex;
 

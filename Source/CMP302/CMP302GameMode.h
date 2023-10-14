@@ -19,9 +19,6 @@ public:
 	
 	ACMP302GameMode();
 
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-	void RespawnAllEnemies();
-
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
 	UCSaveGame* GetSaveGame() const;
@@ -29,14 +26,15 @@ public:
 	void WriteSaveGame();
 
 	void AddRoomManager(ACRoomManager* RoomManager);
-
+	
 	void BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player);
 
 private:
-	
-	void RespawnEnemiesAtRoomIndex(int32 Index);
 
 	void LoadGame();
+
+	UFUNCTION()
+	void ResetRoom(int RoomIndex);
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsFirstTutorialLevel;

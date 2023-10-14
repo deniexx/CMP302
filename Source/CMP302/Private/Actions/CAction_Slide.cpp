@@ -109,6 +109,7 @@ void UCAction_Slide::StartAction_Implementation(AActor* InInstigator)
 	if (HorizontalVelocity > 100.f)
 	{
 		VelocityDirection = MovementComponent->Velocity.GetSafeNormal();
+		VelocityDirection.Z = 0;
 		BeginSliding();
 	}
 }

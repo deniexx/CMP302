@@ -5,8 +5,18 @@
 
 #include "ActorComponents/CCombatStatusComponent.h"
 #include "Character/CCommonCharacter.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Projectiles/CProjectile.h"
 #include "System/CGameplayFunctionLibrary.h"
+
+static TAutoConsoleVariable<int32> CVarShowDebugSwordAttack(
+	TEXT("ShowDebugSwordAttack"),
+	0,
+	TEXT("Draws debug info about sword attacks")
+	TEXT(" 0: Do not show debug info/n")
+	TEXT(" 1: Show Debug info/n"),
+	ECVF_Cheat
+);
 
 void UCAction_Sword::OnActionAdded_Implementation(AActor* InInstigator)
 {
@@ -23,11 +33,7 @@ void UCAction_Sword::OnActionAdded_Implementation(AActor* InInstigator)
 	SwordMeshComponent->SetRelativeTransform(AttachTransform);
 	SwordMeshComponent->bCastDynamicShadow = false;
 	SwordMeshComponent->CastShadow = false;
-	SwordMeshComponent->SetCollisionProfileName("OverlapAll");
 	SwordMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SwordMeshComponent->IgnoreActorWhenMoving(Character, true);
-	
-	SwordMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &UCAction_Sword::OnSwordHit);
 }
 
 void UCAction_Sword::OnActionRemoved_Implementation(AActor* InInstigator)
@@ -43,16 +49,24 @@ void UCAction_Sword::StartAction_Implementation(AActor* InInstigator)
 
 	ACCommonCharacter* Character = Cast<ACCommonCharacter>(InInstigator);
 
-	const int index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
-
-	if (UAnimMontage* AnimMontage = SlashAttackMontages[index])
+	if (IsTerrainInFront(Character))
 	{
-		SwordMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		Character->PlayAnimMontage(AnimMontage);
-		
-		SnapToTargetIfPossible(Character);
-		ReflectProjectileIfPossible(Character);
+		Character->PlayAnimMontage(ReflectAnimMontage, 2.f);
+		return;
 	}
+
+	if (ReflectProjectileIfPossible(Character))
+	{
+		Character->PlayAnimMontage(ReflectAnimMontage, 1.5f);
+		return;
+	}
+	
+	SnapToTargetIfPossible(Character);
+	TraceForEnemyHits(Character);
+
+	const int index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
+	UAnimMontage* AnimMontage = SlashAttackMontages[index];
+	Character->PlayAnimMontage(AnimMontage);
 }
 
 void UCAction_Sword::StopAction_Implementation(AActor* InInstigator)
@@ -62,20 +76,26 @@ void UCAction_Sword::StopAction_Implementation(AActor* InInstigator)
 	SwordMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void UCAction_Sword::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+bool UCAction_Sword::IsTerrainInFront(ACCommonCharacter* Character) const
 {
-	const UCCombatStatusComponent* CombatStatusComponent = UCCombatStatusComponent::GetCombatStatusComponent(InstigatorActor);
-	if (!CombatStatusComponent) return;
+	FVector TraceStart = Character->GetPawnViewLocation();
 	
-	FAttackData AttackData;
-	AttackData.Instigator = InstigatorActor;
-	AttackData.AttackStatusType = CombatStatusComponent->GetAttackStatusType();
-	AttackData.ImpactStrength = 30000.f;
-	UCGameplayFunctionLibrary::TryRegisterHit(AttackData, OtherActor);
+	// Using max reflect distance here, as it's range is quite short
+	FVector TraceEnd = TraceStart + (Character->GetControlRotation().Vector() * MaxReflectDistance);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(Character);
+	
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByObjectType(HitResult, TraceStart, TraceEnd, ObjParams, QueryParams);
+
+	return HitResult.bBlockingHit;
 }
 
-void UCAction_Sword::SnapToTargetIfPossible(ACCommonCharacter* Character) const
+bool UCAction_Sword::SnapToTargetIfPossible(ACCommonCharacter* Character) const
 {
 	FVector TraceStart = Character->GetPawnViewLocation();
 	FVector TraceEnd = TraceStart + (Character->GetControlRotation().Vector() * MaxSnapDistance);
@@ -104,13 +124,15 @@ void UCAction_Sword::SnapToTargetIfPossible(ACCommonCharacter* Character) const
 				Character->SetActorLocation(EndLocation, true);
 
 				UCGameplayFunctionLibrary::AddStatusReportMessage(Character, TEXT("Boosting to enemy to slice"));
-				break;
+				return true;
 			}
 		}
 	}
+
+	return false;
 }
 
-void UCAction_Sword::ReflectProjectileIfPossible(ACCommonCharacter* Character) const
+bool UCAction_Sword::ReflectProjectileIfPossible(ACCommonCharacter* Character) const
 {
 	const FVector TraceStart = Character->GetActorLocation();
 	const FVector TraceEnd = TraceStart + (Character->GetControlRotation().Vector() * MaxReflectDistance);
@@ -124,6 +146,7 @@ void UCAction_Sword::ReflectProjectileIfPossible(ACCommonCharacter* Character) c
 	ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1); // Projectile channel
 
 	TArray<FHitResult> HitResults;
+	bool bSuccess = false;
 	
 	if (GetWorld()->SweepMultiByObjectType(HitResults, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, QueryParams))
 	{
@@ -138,6 +161,57 @@ void UCAction_Sword::ReflectProjectileIfPossible(ACCommonCharacter* Character) c
 			UCGameplayFunctionLibrary::AddStatusReportMessage(Character, TEXT("Successfully reflected attack"));
 			
 			Projectile->Destroy();
+			bSuccess |= true;
 		}
 	}
+
+	return bSuccess;
+}
+
+
+
+bool UCAction_Sword::TraceForEnemyHits(ACCommonCharacter* Character) const
+{
+	const UCCombatStatusComponent* CombatStatusComponent = UCCombatStatusComponent::GetCombatStatusComponent(Character);
+	if (!CombatStatusComponent) return false;
+	
+	FVector TraceStart = Character->GetActorLocation();
+
+	TArray<AActor*> HitActors;
+	const TArray<AActor*> IgnoredActors = { Character };
+	TArray<FHitResult> HitResults;
+
+	const bool bShowDebug = CVarShowDebugSwordAttack.GetValueOnAnyThread() > 0;
+	const EDrawDebugTrace::Type DebugDrawType = bShowDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
+
+	for (int i = AttackTraceSphereMaxAmount; i > 0; --i)
+	{
+		TraceStart += Character->GetActorForwardVector() * AttackTraceLength;
+
+		const FVector ActualTraceStart = TraceStart + Character->GetActorRightVector() * (i * AttackTraceWidth);
+		const FVector ActualTraceEnd = TraceStart - Character->GetActorRightVector() * (i * AttackTraceWidth);
+
+		UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), ActualTraceStart, ActualTraceEnd, AttackTraceSphereSize, AttackObjectTypes, true, IgnoredActors, DebugDrawType, HitResults, true);
+		
+		for (const FHitResult& Result : HitResults)
+		{
+			if (AActor* HitActor = Result.GetActor())
+			{
+				HitActors.Add(HitActor);
+			}
+		}
+	}
+
+	bool bSuccess = false;
+	
+	for (AActor* HitActor : HitActors)
+	{
+		FAttackData AttackData;
+		AttackData.Instigator = InstigatorActor;
+		AttackData.AttackStatusType = CombatStatusComponent->GetAttackStatusType();
+		AttackData.ImpactStrength = 3000.f;
+		bSuccess |= UCGameplayFunctionLibrary::TryRegisterHit(AttackData, HitActor);
+	}
+
+	return bSuccess;
 }

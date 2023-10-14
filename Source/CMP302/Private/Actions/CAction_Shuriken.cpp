@@ -25,6 +25,7 @@ void UCAction_Shuriken::OnActionAdded_Implementation(AActor* InInstigator)
 	ShurikenMeshComponent->CastShadow = false;
 	ShurikenMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ShurikenMeshComponent->IgnoreActorWhenMoving(PlayerCharacter, true);
+	ShurikenMeshComponent->SetVisibility(false);
 
 	ShurikenCooldownWidget = CreateWidget(PlayerCharacter->GetController<APlayerController>(), ShurikenCooldownWidgetClass);
 	ShurikenCooldownWidget->AddToViewport();
@@ -82,6 +83,4 @@ void UCAction_Shuriken::AttackDelayTimer_Elapsed(ACCommonCharacter* Character)
 
 	const FString Message = FString::Printf(TEXT("%s thrown."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
-	
-	StopAction(InstigatorActor);
 }

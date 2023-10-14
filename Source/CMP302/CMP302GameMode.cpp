@@ -23,26 +23,11 @@ ACMP302GameMode::ACMP302GameMode()
 	bIsFirstTutorialLevel = false;
 }
 
-void ACMP302GameMode::RespawnAllEnemies()
-{
-	for (TActorIterator<ACAICharacter> It(GetWorld()); It; ++It)
-	{
-		ACAICharacter* Bot = *It;
-
-		Bot->ReadyActor();
-	}
-}
-
 void ACMP302GameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
 	LoadGame();
-}
-
-void ACMP302GameMode::RespawnEnemiesAtRoomIndex(int32 Index)
-{
-	//RoomManagers[Index]->SpawnEnemies();
 }
 
 void ACMP302GameMode::LoadGame()
@@ -55,6 +40,14 @@ void ACMP302GameMode::LoadGame()
 	{
 		CurrentSaveGame = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
 		UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SaveSlotName, 0);
+	}
+}
+
+void ACMP302GameMode::ResetRoom(int RoomIndex)
+{
+	if (RoomIndex < RoomManagers.Num())
+	{
+		RoomManagers[RoomIndex]->ResetRoom();
 	}
 }
 
@@ -98,5 +91,5 @@ void ACMP302GameMode::AddRoomManager(ACRoomManager* RoomManager)
 void ACMP302GameMode::BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player)
 {
 	if (Player)
-		Player->OnPlayerHit.AddDynamic(this, &ThisClass::RespawnEnemiesAtRoomIndex);
+		Player->OnPlayerHit.AddDynamic(this, &ThisClass::ResetRoom);
 }

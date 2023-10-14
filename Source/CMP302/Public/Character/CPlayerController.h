@@ -33,6 +33,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> MainUIWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> PauseMenuWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	UInputAction* BackInputAction;

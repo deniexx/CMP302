@@ -38,6 +38,15 @@ int32 ACEnemySpawner::SpawnEnemy()
 	return 0;
 }
 
+void ACEnemySpawner::KillEnemy()
+{
+	if (SpawnedEnemy)
+	{
+		SpawnedEnemy->Destroy();
+		SpawnedEnemy = nullptr;
+	}
+}
+
 void ACEnemySpawner::OnHit(const FAttackData& AttackData)
 {
 	SpawnedEnemy = nullptr;

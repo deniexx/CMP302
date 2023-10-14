@@ -50,6 +50,14 @@ void ACRoomManager::SpawnEnemies()
 	}
 }
 
+void ACRoomManager::KillEnemies()
+{
+	for (ACEnemySpawner* Spawner : EnemySpawners)
+	{
+		Spawner->KillEnemy();
+	}
+}
+
 bool ACRoomManager::GetIsCleared() const
 {
 	return bRoomCleared;
@@ -58,6 +66,12 @@ bool ACRoomManager::GetIsCleared() const
 void ACRoomManager::SetIsCleared(bool bNewState)
 {
 	bRoomCleared = bNewState;
+}
+
+void ACRoomManager::ResetRoom()
+{
+	KillEnemies();
+	SpawnEnemies();
 }
 
 void ACRoomManager::EnemyKilled()
