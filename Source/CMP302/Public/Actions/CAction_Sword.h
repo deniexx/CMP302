@@ -23,8 +23,6 @@ public:
 
 	virtual void StartAction_Implementation(AActor* InInstigator) override;
 
-	virtual void StopAction_Implementation(AActor* InInstigator) override;
-
 protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
@@ -70,6 +68,16 @@ protected:
 	UStaticMeshComponent* SwordMeshComponent;
 
 private:
+
+	int32 NextComboAttack;
+
+	FTimerHandle ResetComboTimer_Handle;
+
+	UPROPERTY()
+	UAnimMontage* CurrentMontage;
+	
+	UFUNCTION()
+	void ResetComboTimerElapsed(ACCommonCharacter* Character);
 
 	bool IsTerrainInFront(ACCommonCharacter* Character) const;
 	

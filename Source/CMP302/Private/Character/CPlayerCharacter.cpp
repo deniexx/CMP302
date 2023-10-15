@@ -139,6 +139,9 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Interact
 		EnhancedInputComponent->BindAction(InteractInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::Interact);
+
+		// Grapple
+		EnhancedInputComponent->BindAction(GrappleInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::Grapple);
 	}
 }
 
@@ -264,4 +267,10 @@ void ACPlayerCharacter::Interact(const FInputActionValue& Value)
 {
 	if (ensureAlways(InteractionComponent))
 		InteractionComponent->PrimaryInteract();
+}
+
+void ACPlayerCharacter::Grapple(const FInputActionValue& Value)
+{
+	if (ensureAlways(ActionComponent))
+		ActionComponent->StartActionByTag(this, GrappleActionTag);
 }

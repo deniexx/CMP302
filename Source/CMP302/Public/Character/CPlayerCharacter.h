@@ -78,6 +78,9 @@ protected:
 	UFUNCTION()
 	void Interact(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void Grapple(const FInputActionValue& Value);
+
 private:
 	
 	/** First person camera */
@@ -128,9 +131,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* OverloadInputAction;
 
-	/** Overload Action */
+	/** Interact Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractInputAction;
+
+	/** Grapple Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* GrappleInputAction;
 
 
 	/** Fire Projectile Action Tag */
@@ -156,6 +163,10 @@ private:
 	/** Overload Action Tag */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag OverloadActionTag;
+
+	/** Grapple Action Tag */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	FGameplayTag GrappleActionTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag InputBlockTag;

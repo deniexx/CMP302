@@ -23,7 +23,8 @@ void UCAction_Sword::OnActionAdded_Implementation(AActor* InInstigator)
 	Super::OnActionAdded_Implementation(InInstigator);
 
 	ACCommonCharacter* Character = Cast<ACCommonCharacter>(InInstigator);
-	
+
+	NextComboAttack = 1;
 	Character->GetMesh()->SetHiddenInGame(false);
 	Character->ReadyActor();
 	SwordMeshComponent = Cast<UStaticMeshComponent>(InInstigator->AddComponentByClass(UStaticMeshComponent::StaticClass(), true, FTransform(), false));
@@ -64,16 +65,33 @@ void UCAction_Sword::StartAction_Implementation(AActor* InInstigator)
 	SnapToTargetIfPossible(Character);
 	TraceForEnemyHits(Character);
 
-	const int index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
-	UAnimMontage* AnimMontage = SlashAttackMontages[index];
-	Character->PlayAnimMontage(AnimMontage);
+	if (NextComboAttack == 1)
+	{
+		const uint32 Index = FMath::RandRange(0, SlashAttackMontages.Num() - 1);
+		CurrentMontage = SlashAttackMontages[Index];
+	}
+
+	const FString ComboMontage = FString::Printf(TEXT("Attack%d"), NextComboAttack);
+	Character->PlayAnimMontage(CurrentMontage, 1, FName(*ComboMontage));
+
+	if (ResetComboTimer_Handle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ResetComboTimer_Handle);
+	}
+
+	FTimerDelegate Delegate;
+	Delegate.BindUObject(this, &ThisClass::ResetComboTimerElapsed, Character);
+	GetWorld()->GetTimerManager().SetTimer(ResetComboTimer_Handle, Delegate, 1.f, false);
+	
+	if (++NextComboAttack > 3)
+		NextComboAttack = 1;
 }
 
-void UCAction_Sword::StopAction_Implementation(AActor* InInstigator)
+void UCAction_Sword::ResetComboTimerElapsed(ACCommonCharacter* Character)
 {
-	Super::StopAction_Implementation(InInstigator);
-	
-	SwordMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ResetComboTimer_Handle.Invalidate();
+	NextComboAttack = 1;
+	Character->StopAnimMontage(CurrentMontage);
 }
 
 bool UCAction_Sword::IsTerrainInFront(ACCommonCharacter* Character) const
