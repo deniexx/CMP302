@@ -30,8 +30,8 @@ void UCShopWidget::NativeDestruct()
 
 	ParentVerticalBox->ClearChildren();
 	
-	ACPlayerState* PlayerState = GetOwningPlayer()->GetPlayerState<ACPlayerState>();
-    PlayerState->OnCurrencyUpdated.RemoveDynamic(this, &ThisClass::OnCurrencyUpdated);
+	if (ACPlayerState* PlayerState = GetOwningPlayer()->GetPlayerState<ACPlayerState>())
+		PlayerState->OnCurrencyUpdated.RemoveDynamic(this, &ThisClass::OnCurrencyUpdated);
 }
 
 void UCShopWidget::OnCurrencyUpdated(int32 NewAmount, int32 OldAmount)

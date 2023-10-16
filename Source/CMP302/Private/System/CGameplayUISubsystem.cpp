@@ -6,7 +6,7 @@
 #include "ActorComponents/CActionComponent.h"
 #include "Blueprint/UserWidget.h"
 
-UUserWidget* UCGameplayUISubsystem::PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode, bool bShowMouseCursor, bool bFocusWidget)
+UUserWidget* UCGameplayUISubsystem::PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode, bool bShowMouseCursor, bool bFocusWidget, bool bPause)
 {
 	UUserWidget* Widget = CreateWidget(PlayerController, WidgetClass);
 	FGameplayUIData GameplayUIData;
@@ -14,6 +14,7 @@ UUserWidget* UCGameplayUISubsystem::PushWidget(TSubclassOf<UUserWidget> WidgetCl
 	GameplayUIData.bShowMouseCursor= bShowMouseCursor;
 	GameplayUIData.Widget = Widget;
 	GameplayUIData.bFocusWidget = bFocusWidget;
+	GameplayUIData.bPaused = bPause;
 	
 	WidgetStack.Push(GameplayUIData);
 	
@@ -41,6 +42,7 @@ bool UCGameplayUISubsystem::PopWidget()
 		GameplayUIData.InputMode = ECInputMode::GameOnly;
 		GameplayUIData.bShowMouseCursor = false;
 		GameplayUIData.bFocusWidget = false;
+		GameplayUIData.bPaused = false;
 
 		SetInputMode(GameplayUIData);
 	}
@@ -71,6 +73,7 @@ void UCGameplayUISubsystem::SetInputMode(const FGameplayUIData& Data)
 		}
 	}
 
+	PlayerController->SetPause(Data.bPaused);
 	PlayerController->SetShowMouseCursor(Data.bShowMouseCursor);
 }
 

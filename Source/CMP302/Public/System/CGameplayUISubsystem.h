@@ -21,7 +21,10 @@ struct FGameplayUIData
 	bool bShowMouseCursor = false;
 
 	UPROPERTY()
-	bool bFocusWidget;
+	bool bFocusWidget = false;
+
+	UPROPERTY()
+	bool bPaused = false;
 
 	UPROPERTY()
 	UUserWidget* Widget;
@@ -38,7 +41,7 @@ class CMP302_API UCGameplayUISubsystem : public UGameInstanceSubsystem
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayUI")
-	UUserWidget* PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode = ECInputMode::None, bool bShowMouseCursor = false, bool bFocusWidget = false);
+	UUserWidget* PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode = ECInputMode::None, bool bShowMouseCursor = false, bool bFocusWidget = false, bool bPause = false);
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayUI")
 	bool PopWidget();

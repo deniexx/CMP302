@@ -46,7 +46,7 @@ void ACPlayerController::BackMenu(const FInputActionValue& Value)
 		}
 		else
 		{
-			GameplayUISubsystem->PushWidget(PauseMenuWidget, ECInputMode::UIOnly, true, true);
+			GameplayUISubsystem->PushWidget(PauseMenuWidget, ECInputMode::UIOnly, true, true, true);
 		}
 	}
 
