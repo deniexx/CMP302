@@ -41,6 +41,8 @@ void UCAction_ForcePush::StartAction_Implementation(AActor* InInstigator)
 	const bool bShowDebug = CVarShowDebugForcePush.GetValueOnAnyThread() > 0;
 	const EDrawDebugTrace::Type DebugDrawType = bShowDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
 
+	Character->PlayAnimMontage(ForcePushMontage);
+	
 	if (UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), TraceStart, TraceEnd, PushRange, ObjectTypes, true, IgnoredActors, DebugDrawType, HitResults, true))
 	{
 		for (const FHitResult& Hit : HitResults)
@@ -54,6 +56,4 @@ void UCAction_ForcePush::StartAction_Implementation(AActor* InInstigator)
 			}
 		}
 	}
-
-	StopAction(InInstigator);
 }

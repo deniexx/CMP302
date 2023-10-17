@@ -43,9 +43,9 @@ protected:
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
 
-	/** Called when we want to fire a projectile */
+	/** Called when we want to switch the special attack */
 	UFUNCTION()
-	void FireProjectile(const FInputActionValue& Value);
+	void SwitchSpecialAttack(const FInputActionValue& Value);
 
 	/** Called when we want to switch attack status */
 	UFUNCTION()
@@ -109,7 +109,7 @@ private:
 
 	/** Fire Projectile Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
-	UInputAction* FireProjectileInputAction;
+	UInputAction* SwitchSpecialAttackInputAction;
 
 	/** Switch Attack Status Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
@@ -142,7 +142,7 @@ private:
 
 	/** Fire Projectile Action Tag */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
-	FGameplayTag FireProjectileActionTag;
+	FGameplayTag SwitchSpecialAttackActionTag;
 
 	/** Fire Projectile Action Tag */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))

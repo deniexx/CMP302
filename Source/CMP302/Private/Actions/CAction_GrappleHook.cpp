@@ -3,9 +3,12 @@
 
 #include "Actions/CAction_GrappleHook.h"
 
+#include "CLogChannels.h"
 #include "UI/CWorldUserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Character/CPlayerCharacter.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 static TAutoConsoleVariable<int32> CVarShowDebugGrappleHook(
@@ -69,13 +72,35 @@ void UCAction_GrappleHook::StartAction_Implementation(AActor* InInstigator)
 {
 	Super::StartAction_Implementation(InInstigator);
 
+	Character->PlayAnimMontage(GrappleMontage);
+	
 	FVector Direction = GrappleTarget->GetActorLocation() - Character->GetActorLocation();
 	const float Distance = Direction.Length();
 	Direction.Normalize();
 
-	Character->LaunchCharacter(Direction * Distance * GrapplePower, true, true);
+	if (!NiagaraComponent)
+	{
+		NiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(GrappleEffect, Character->GetMesh(), TEXT("hand_l"), FVector(0.f), FRotator(0.f), EAttachLocation::SnapToTarget, false);
+	}
+	else
+	{
+		NiagaraComponent->Activate(true);
+	}
 
-	StopAction(InInstigator);
+	NiagaraComponent->SetNiagaraVariableVec3(FString("StartBeam"), Character->GetMesh()->GetBoneLocation(TEXT("hand_l")));
+	NiagaraComponent->SetNiagaraVariableVec3(FString("EndBeam"), GrappleTarget->GetActorLocation());
+
+	Character->LaunchCharacter(Direction * Distance * GrapplePower, true, true);
+}
+
+void UCAction_GrappleHook::StopAction_Implementation(AActor* InInstigator)
+{
+	Super::StopAction_Implementation(InInstigator);
+
+	if (NiagaraComponent)
+	{
+		NiagaraComponent->Deactivate();
+	}
 }
 
 bool UCAction_GrappleHook::CanStart_Implementation(AActor* InInstigator)
@@ -98,13 +123,13 @@ void UCAction_GrappleHook::FindBestTarget(const TArray<FHitResult>& HitResults)
 		const FVector TraceStart = Character->GetFirstPersonCameraComponent()->GetComponentLocation();
 		const FVector TraceEnd = Target->GetActorLocation();
 
-		// If we don't hit we draw the object
+		// If we don't hit we don't see the object
 		if (GetWorld()->SweepSingleByChannel(Hit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, Shape))
 		{
 			if (HitResult.GetActor() != Hit.GetActor())
 			{
 				// We hit something else, meaning we don't have line of sight
-				break;
+				continue;
 			}
 			FVector ToTarget = (TraceEnd - Character->GetActorLocation());
 			ToTarget.Normalize();
@@ -112,6 +137,9 @@ void UCAction_GrappleHook::FindBestTarget(const TArray<FHitResult>& HitResults)
 
 			const float AngleDeg = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ToTarget, CameraForward)));
 
+			if (AngleDeg > 30.f)
+				continue; // Angle is too much, so we don't accept it as a valid target
+			
 			if (AngleDeg < BestAngle || !GrappleTarget)
 			{
 				BestAngle = AngleDeg;

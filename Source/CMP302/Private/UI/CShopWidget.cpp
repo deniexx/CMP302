@@ -48,8 +48,7 @@ void UCShopWidget::OnCurrencyUpdated(int32 NewAmount, int32 OldAmount)
 	TargetCurrency = NewAmount;
 	if (TweenHandle.IsValid())
 	{
-		// If we are currently tweening, just update the target amount
-		return;
+		TweenSubsystem->StopTween(TweenHandle);
 	}
 
 	StartingCurrency = OldAmount;

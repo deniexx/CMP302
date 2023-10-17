@@ -26,9 +26,6 @@ void UCAction_Shuriken::OnActionAdded_Implementation(AActor* InInstigator)
 	ShurikenMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ShurikenMeshComponent->IgnoreActorWhenMoving(PlayerCharacter, true);
 	ShurikenMeshComponent->SetVisibility(false);
-
-	ShurikenCooldownWidget = CreateWidget(PlayerCharacter->GetController<APlayerController>(), ShurikenCooldownWidgetClass);
-	ShurikenCooldownWidget->AddToViewport();
 }
 
 void UCAction_Shuriken::OnActionRemoved_Implementation(AActor* InInstigator)
@@ -36,15 +33,6 @@ void UCAction_Shuriken::OnActionRemoved_Implementation(AActor* InInstigator)
 	Super::OnActionRemoved_Implementation(InInstigator);
 
 	ShurikenMeshComponent->DestroyComponent();
-
-	ShurikenCooldownWidget->RemoveFromParent();
-}
-
-void UCAction_Shuriken::TickAction_Implementation(float DeltaTime)
-{
-	Super::TickAction_Implementation(DeltaTime);
-
-	UKismetMaterialLibrary::SetScalarParameterValue(GetOuter(), UIParameterCollection, "ShurikenTimerProgress", 1 - GetRemainingCooldownFraction());
 }
 
 void UCAction_Shuriken::StartAction_Implementation(AActor* InInstigator)

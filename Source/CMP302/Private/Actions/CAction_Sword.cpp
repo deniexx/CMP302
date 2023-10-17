@@ -81,7 +81,7 @@ void UCAction_Sword::StartAction_Implementation(AActor* InInstigator)
 
 	FTimerDelegate Delegate;
 	Delegate.BindUObject(this, &ThisClass::ResetComboTimerElapsed, Character);
-	GetWorld()->GetTimerManager().SetTimer(ResetComboTimer_Handle, Delegate, 1.f, false);
+	GetWorld()->GetTimerManager().SetTimer(ResetComboTimer_Handle, Delegate, 0.75f, false);
 	
 	if (++NextComboAttack > 3)
 		NextComboAttack = 1;

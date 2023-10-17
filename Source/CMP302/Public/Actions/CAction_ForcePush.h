@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actions/CAction.h"
+#include "CAction_SpecialAbility.h"
 #include "CAction_ForcePush.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class CMP302_API UCAction_ForcePush : public UCAction
+class CMP302_API UCAction_ForcePush : public UCAction_SpecialAbility
 {
 	GENERATED_BODY()
 
@@ -32,4 +32,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Push")
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
+	UAnimMontage* ForcePushMontage;
 };

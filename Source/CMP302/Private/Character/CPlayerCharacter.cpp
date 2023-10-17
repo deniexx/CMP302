@@ -94,7 +94,7 @@ void ACPlayerCharacter::PawnClientRestart()
 {
 	Super::PawnClientRestart();
 
-	if (APlayerController* PlayerController = GetController<APlayerController>())
+	if (const APlayerController* PlayerController = GetController<APlayerController>())
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
@@ -117,8 +117,8 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::Move);
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::Look);
 
-		// Fire Projectile
-		EnhancedInputComponent->BindAction(FireProjectileInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::FireProjectile);
+		// Switch Special Attack
+		EnhancedInputComponent->BindAction(SwitchSpecialAttackInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::SwitchSpecialAttack);
 
 		// Switch Status
 		EnhancedInputComponent->BindAction(SwitchAttackStatusInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::SwitchAttackStatus);
@@ -209,10 +209,10 @@ void ACPlayerCharacter::SwitchAttackStatus(const FInputActionValue& Value)
 		CombatComponent->UpdateAttackStatusType(EAttackStatusType::Blue);
 }
 
-void ACPlayerCharacter::FireProjectile(const FInputActionValue& Value)
+void ACPlayerCharacter::SwitchSpecialAttack(const FInputActionValue& Value)
 {
 	if (ensureAlways(ActionComponent))
-		ActionComponent->StartActionByTag(this, FireProjectileActionTag);
+		ActionComponent->StartActionByTag(this, SwitchSpecialAttackActionTag);
 }
 
 void ACPlayerCharacter::SlashAttack(const FInputActionValue& Value)

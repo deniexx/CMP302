@@ -113,4 +113,7 @@ protected:
 	FTimerHandle DashTimerHandle;
 
 	void TweenDashCooldownUIParameter(float Value);
+
+	UFUNCTION(BlueprintCallable)
+	void GrantDashCharge();
 };

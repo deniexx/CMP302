@@ -78,7 +78,7 @@ void ACCommonCharacter::StartTweenAppearance()
 	
 	const float Start = bDead ? 1 : 0;
 	const float End = bDead ? 0 : 1;
-	TweenWorldSubsystem->AddTween(Handle, Start, End, Delegate, 1, ETweenFunction::EaseInOutQuint);
+	TweenWorldSubsystem->AddTween(Handle, Start, End, Delegate, 1);
 }
 
 void ACCommonCharacter::ReadyActor()

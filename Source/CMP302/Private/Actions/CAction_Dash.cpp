@@ -264,3 +264,11 @@ void UCAction_Dash::TweenDashCooldownUIParameter(float Value)
 	const float ActualValue = Value / Cooldown;
 	UKismetMaterialLibrary::SetScalarParameterValue(Character, UIMaterialParameters, TEXT("DashCooldownProgress"), ActualValue);
 }
+
+void UCAction_Dash::GrantDashCharge()
+{
+	if (bDashing)
+		InterruptDash();
+	
+	bGroundTouched = true;
+}

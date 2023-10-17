@@ -41,7 +41,6 @@ UCCombatStatusComponent::UCCombatStatusComponent()
 
 void UCCombatStatusComponent::TweenColour(float Value)
 {
-	UE_LOG(LogCMP, Warning, TEXT("Value: %.2f"), Value);
 	const FLinearColor Color = FMath::Lerp(PreviousAttackStatusColor, CurrentAttackStatusColor, Value);
 	UKismetMaterialLibrary::SetVectorParameterValue(CharacterOwner, PlayerMaterialParameters,
 			TEXT("PlayerAttackStatusColor"), Color);
@@ -122,7 +121,7 @@ void UCCombatStatusComponent::UpdateAttackStatusType(EAttackStatusType NewAttack
 	UTweenSubsystem* TweenWorldSubsystem = CharacterOwner->GetGameInstance()->GetSubsystem<UTweenSubsystem>();
 	FTweenDynamicDelegate Delegate;
 	Delegate.BindDynamic(this, &ThisClass::TweenColour);
-	TweenWorldSubsystem->AddTween(TweenHandle, 0, 1, Delegate, 4, ETweenFunction::EaseInOutQuint);
+	TweenWorldSubsystem->AddTween(TweenHandle, 0, 1, Delegate, 4);
 }
 
 void UCCombatStatusComponent::ForceAttackStatusType(EAttackStatusType NewAttackStatusType)

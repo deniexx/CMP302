@@ -11,24 +11,6 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FTweenDynamicDelegate, float, CurrentValue);
 
 class UTweenSubsystem;
 
-UENUM(BlueprintType)
-enum class ETweenFunction : uint8
-{
-	None,
-	EaseIn,
-	EaseOut,
-	EaseInOut,
-	EaseInQuad,
-	EaseOutQuad,
-	EaseInOutQuad,
-	EaseInCubic,
-	EaseOutCubic,
-	EaseInOutCubic,
-	EaseInQuint,
-	EaseOutQuint,
-	EaseInOutQuint,
-};
-
 USTRUCT(BlueprintType)
 struct FTweenHandle
 {
@@ -78,8 +60,6 @@ public:
 
 	FTweenHandle* Handle = nullptr;
 
-	TFunction<float (float Value)> TweeningFunction;
-
 	bool operator==(const FTween& lhs) const { return lhs.Index == Index; }
 };
 
@@ -111,11 +91,10 @@ public:
 	 * @param End The end value
 	 * @param Delegate The delegate, holding the callback function, no callback function means you will have to get the value yourself
 	 * @param Speed The speed of the tween, this will be used to multiply DeltaTime with, so if you want 4 secs, use 1 / 4 etc...
-	 * @param TweenFunction The tweening function to use, None is just straight interpolation without any easing
 	 * @param Active Whether the tween is active, this can be used to store it and activate later
 	 * @return A tween handle, can be used to further reference tweens
 	 */
-	void AddTween(FTweenHandle& InOutHandle, float Start, float End, FTweenDelegate const& Delegate, float Speed = 1, ETweenFunction TweenFunction = ETweenFunction::None, bool Active = true);
+	void AddTween(FTweenHandle& InOutHandle, float Start, float End, FTweenDelegate const& Delegate, float Speed = 1, bool Active = true);
 
 	/**
 	 * Adds a tween to the tweening subsystem and if active is true, it begins tweening
@@ -124,12 +103,12 @@ public:
 	 * @param End The end value
 	 * @param Delegate The delegate, holding the callback function, no callback function means you will have to get the value yourself
 	 * @param Speed The speed of the tween, this will be used to multiply DeltaTime with, so if you want 4 secs, use 1 / 4 etc...
-	 * @param TweenFunction The tweening function to use, None is just straight interpolation without any easing
 	 * @param Active Whether the tween is active, this can be used to store it and activate later
 	 * @return A tween handle, can be used to further reference tweens
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TweenSubsystem")
-	void AddTween(FTweenHandle& InOutHandle, float Start, float End, FTweenDynamicDelegate const& Delegate, float Speed = 1, ETweenFunction TweenFunction = ETweenFunction::None, bool Active = true);
+	void AddTween(FTweenHandle& InOutHandle, float Start, float End, FTweenDynamicDelegate const& Delegate, float Speed = 1, bool Active = true);
+
 
 	/**
 	 * Changes a tween active state
@@ -147,15 +126,7 @@ public:
 	void StopTween(FTweenHandle& TweenHandle);
 
 private:
-	/**
-	 * Finds the appropriate tweening function to be called when we are interpolating the value
-	 * @param Function Tweening function chosen
-	 * @return The function to be called when we tick the tween
-	 */
-	TFunction<float (float Value)> GetTweenFunction(ETweenFunction Function);
-
-	float TweenWithFunction(ETweenFunction Function, float Value);
-
+	
 	UPROPERTY()
 	TArray<FTween> Tweens;
 
