@@ -25,12 +25,15 @@ public:
 
 protected:
 
+	/** The minimap widget class to display */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	TSubclassOf<UCMinimap> MinimapClass;
 
+	/** The sphere size for collision checks */
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")
 	float SphereSize;
 
+	/** The sphere collision component to check for overlaps to display on the minimap */
 	UPROPERTY()
 	USphereComponent* SphereCollision;
 	
@@ -47,9 +50,6 @@ private:
 
 	UPROPERTY()
 	APlayerController* PlayerController;
-
-	UPROPERTY()
-	TArray<AActor*> DetectedEnemies;
 
 	UPROPERTY()
 	UCMinimap* MinimapInstance;

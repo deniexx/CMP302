@@ -51,6 +51,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Stats")
 	uint8 Pierce;
 
+	/** The strength of the impact */
 	UPROPERTY(EditAnywhere, Category = "Stats")
 	float ImpactStrength;
 

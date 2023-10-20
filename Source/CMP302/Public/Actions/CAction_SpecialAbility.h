@@ -16,5 +16,5 @@ class CMP302_API UCAction_SpecialAbility : public UCAction
 
 public:
 
-	virtual void OnActionAdded_Implementation(AActor* InInstigator);
+	virtual void OnActionAdded_Implementation(AActor* InInstigator) override;
 };

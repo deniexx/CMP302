@@ -30,15 +30,18 @@ public:
 	virtual void StartAction_Implementation(AActor* InInstigator) override;
 
 	virtual void StopAction_Implementation(AActor* InInstigator) override;
-	
+
+	/** Adds a charge to the action, making you able to use it again */
 	UFUNCTION(BlueprintCallable)
 	void AddCharge();
 	
 protected:
 
+	/** The duration of the overload action */
 	UPROPERTY(EditDefaultsOnly)
 	float OverloadDuration;
 
+	/** The widget class to display */
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UCOverloadActionWidget> OverloadActionWidgetClass;
 
@@ -54,7 +57,9 @@ protected:
 
 private:
 
+	/** Time elapsed of the overload action */
 	float TimeElapsed = 0.f;
 
+	/** Whether we have a charge or not */
 	bool bHasCharge = true;
 };

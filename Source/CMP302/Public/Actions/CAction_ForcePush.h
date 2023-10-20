@@ -20,18 +20,23 @@ public:
 
 protected:
 
+	/** The range of the push (radius of the collision sphere) */
 	UPROPERTY(EditDefaultsOnly, Category = "Push")
 	float PushRange;
 
+	/** The force of the push */
 	UPROPERTY(EditDefaultsOnly, Category = "Push")
 	float PushForce;
 
+	/** The forward offset for the push collision detection */
 	UPROPERTY(EditDefaultsOnly, Category = "Push")
 	float ForwardOffset;
 
+	/** Objects types to query for the push */
 	UPROPERTY(EditDefaultsOnly, Category = "Push")
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 
+	/** The anim montage played when we activate the action */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	UAnimMontage* ForcePushMontage;
 };

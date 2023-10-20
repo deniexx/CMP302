@@ -93,8 +93,10 @@ protected:
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	/** Loads the actions from the save game */
 	void LoadActions();
 
+	/** Saves the actions to the save game */
 	void SaveActions();
 
 	/** The starting actions */
@@ -105,6 +107,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Actions")
 	FGameplayTagContainer BlockTags;
 
+	/** The default tags that block all actions */
 	UPROPERTY(EditDefaultsOnly, Category = "Actions")
 	FGameplayTag DefaultBlockedTag;
 

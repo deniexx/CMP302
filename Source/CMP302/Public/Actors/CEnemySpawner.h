@@ -18,11 +18,14 @@ class CMP302_API ACEnemySpawner : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ACEnemySpawner();
-	
+
+	/** Registers the Spawner to the room manager */
 	void Init(ACRoomManager* InRoomManager);
 
+	/** Spawns an enemy */
 	int32 SpawnEnemy();
 
+	/** Kills the spawned enemy if there is one */
 	void KillEnemy();
 	
 protected:

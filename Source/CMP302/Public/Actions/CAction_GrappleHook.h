@@ -32,34 +32,44 @@ public:
 
 protected:
 
+	/** The object types to query */
 	UPROPERTY(EditDefaultsOnly, Category = "Grappling")
 	TArray<TEnumAsByte<EObjectTypeQuery>> GrappleHookObjectTypes;
 
+	/** The max range for grappling */
 	UPROPERTY(EditDefaultsOnly, Category = "Grappling")
 	float MaxGrappleRange;
 
+	/** The force to be applied when grappling towards the target */
 	UPROPERTY(EditDefaultsOnly, Category = "Grappling")
 	float GrapplePower;
 
+	/** The world widget to be displayed on the target we can grapple to */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	TSubclassOf<UCWorldUserWidget> WorldUserWidgetClass;
 
+	/** The montage to be used for the grappling */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	UAnimMontage* GrappleMontage;
 
+	/** The effect to play when grappling */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	UNiagaraSystem* GrappleEffect;
 
 private:
-
+	/**
+	 * Finds the best target to grapple to
+	 * @param HitResults The hit results from the collision check
+	 */
 	void FindBestTarget(const TArray<FHitResult>& HitResults);
 
+	/** The current grapple target */
 	UPROPERTY()
 	AActor* GrappleTarget;
 	
 	UPROPERTY()
 	ACPlayerCharacter* Character;
-
+	
 	UPROPERTY()
 	UCWorldUserWidget* WorldUserWidgetInstance;
 

@@ -37,21 +37,27 @@ protected:
 
 private:
 
+	/** The velocity to be applied after jumping off a wall during wall run */
 	UPROPERTY(EditAnywhere, Category = "Traversal", meta = (AllowPrivateAccess = "true"))
 	float WallRunJumpOffVelocity;
 
+	/** The object types to query for a wall run collision check */
 	UPROPERTY(EditDefaultsOnly, Category = "Traversal")
 	TArray<TEnumAsByte<EObjectTypeQuery>> WallRunObjectTypes;
 
+	/** The tags for wall running (these are added/removed depending on the action state)  */
 	UPROPERTY(EditDefaultsOnly, Category = "Traversal")
 	FGameplayTagContainer WallRunningTags;
 
+	/** The tags for when we are in air */
 	UPROPERTY(EditDefaultsOnly, Category = "Traversal")
 	FGameplayTagContainer InAirTags;
 
+	/** Camera Modifier to be applied, during the a wall run */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UCameraModifier> LeftWallRunCameraModifier;
 
+	/** Camera Modifier to be applied, during the a wall run */
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UCameraModifier> RightWallRunCameraModifier;
 
@@ -60,7 +66,8 @@ private:
 
 	UPROPERTY()
 	UCharacterMovementComponent* MovementComponent;
-	
+
+	/** Is the character wall running */
 	bool bWallRunning = false;
 	
 	UPROPERTY()
@@ -69,17 +76,22 @@ private:
 	UPROPERTY()
 	UCameraModifier* AppliedCameraModifierRight;
 
+	/** Was the last wall run on the left (used for camera modifiers) */
 	bool bWasLastWallRunOnLeft;
 
 	UPROPERTY()
 	FHitResult WallRunHit;
 
+	/** Starts the wall running behaviour */
 	void BeginWallRun();
-	
+
+	/** Ends the wall running behaviour */
 	void EndWallRun();
 
+	/** Finds a wall runnable wall, this is used to either find a wall to initiate a wall run or to check if we can continue the wall run with the current wall */
 	bool FindRunnableWall(FHitResult& OutWallHit) const;
 
+	/** Checks if the wall run is on the left */
 	bool IsWallOnTheLeft(const FHitResult& InWallHit);
 
 	UFUNCTION()

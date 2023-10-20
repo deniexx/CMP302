@@ -51,33 +51,43 @@ protected:
 	UFUNCTION()
 	void SwitchAttackStatus(const FInputActionValue& Value);
 
+	/** Called when we want to begin the dash */
 	UFUNCTION()
 	void BeginDash(const FInputActionValue& Value);
 
+	/** Called when we want to end the dash */
 	UFUNCTION()
 	void EndDash(const FInputActionValue& Value);
 
+	/** Called when we want to use the slash attack */
 	UFUNCTION()
 	void SlashAttack(const FInputActionValue& Value);
 
+	/** Called when we want to begin traversal */
 	UFUNCTION()
 	void BeginTraversal(const FInputActionValue& Value);
 
+	/** Called when we want to end traversal */
 	UFUNCTION()
 	void EndTraversal(const FInputActionValue& Value);
 
+	/** Called when we want to begin sliding */
 	UFUNCTION()
 	void BeginSlide(const FInputActionValue& Value);
 
+	/** Called when we want to end sliding */
 	UFUNCTION()
 	void EndSlide(const FInputActionValue& Value);
 
+	/** Called when we want to start the overload action */
 	UFUNCTION()
 	void OverloadCharacter(const FInputActionValue& Value);
 
+	/** Called when we want to interact with an object */
 	UFUNCTION()
 	void Interact(const FInputActionValue& Value);
 
+	/** Called when we want to grapple to a target */
 	UFUNCTION()
 	void Grapple(const FInputActionValue& Value);
 

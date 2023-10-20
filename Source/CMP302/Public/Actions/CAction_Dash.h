@@ -33,6 +33,10 @@ public:
 
 	virtual bool CanStart_Implementation(AActor* InInstigator) override;
 
+	/**
+	 * Gets the dash timer progress in a range of 0 to 1
+	 * @return The dash timer progress in a value of 0 to 1
+	 */
 	float GetDashTimerProgress() const;
 	
 protected:
@@ -45,6 +49,7 @@ protected:
 	UPROPERTY()
 	UCExtendedCharacterMovement* MovementComponent;
 
+	/** The overcharge tag to search for, this is used to determine if you can slash during the dash */
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	FGameplayTag OverchargeTag;
 
@@ -63,32 +68,42 @@ protected:
 	/** Dash Visual Effects */
 	UPROPERTY()
 	AStaticMeshActor* DashIndicatorActor;
-	
+
+	/** A mesh indicating the end position of the dash */
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	UStaticMesh* DashIndicatorMesh;
 
+	/** The instance of the Widget for the dash */
 	UPROPERTY()
 	UCDashUserWidget* DashVisualOverlayInstance;
 
+	/** The Class of the Widget for the dash */
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	TSubclassOf<UCDashUserWidget> DashVisualOverlayInstanceClass;
 
+	/** The instance of the widget used to display the dash cooldown */
 	UPROPERTY()
 	UUserWidget* DashCooldownWidgetInstance;
 
+	/** The class of the dash cooldown widget */
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	TSubclassOf<UUserWidget> DashCooldownWidgetClass;
 
+	/** The material parameters used to drive the UI */
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	UMaterialParameterCollection* UIMaterialParameters;
 
+	/** Interrupts the dash and resets it if player is on the ground */
 	UFUNCTION()
 	void InterruptDash();
 
+	/** Is the character dashing */
 	bool bDashing;
 
+	/** Has the character touched the ground since the last dash */
 	bool bGroundTouched;
 
+	/** The end location of the dash */
 	FVector DashLocation;
 
 	/** Default variables that we can return to */
@@ -111,7 +126,7 @@ protected:
 
 	UPROPERTY()
 	FTimerHandle DashTimerHandle;
-
+	
 	void TweenDashCooldownUIParameter(float Value);
 
 	UFUNCTION(BlueprintCallable)

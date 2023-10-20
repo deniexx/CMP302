@@ -25,9 +25,10 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	/** Called when we want to go back in the menu */
 	UFUNCTION()
 	void BackMenu(const FInputActionValue& Value);
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UCStatusReportWidget> StatusReportWidgetClass;
 

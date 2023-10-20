@@ -222,4 +222,10 @@ void UCAction_WallRun::OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, 
 void UCAction_WallRun::OnCharacterLanded(const FHitResult& Hit)
 {
 	GetOwningComponent()->ActiveGameplayTags.RemoveTags(InAirTags);
+
+	if (AppliedCameraModifierLeft)
+		AppliedCameraModifierLeft->DisableModifier();
+
+	if (AppliedCameraModifierRight)
+		AppliedCameraModifierRight->DisableModifier();
 }

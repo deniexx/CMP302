@@ -39,7 +39,7 @@ class CMP302_API UCGameplayUISubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-
+	
 	UFUNCTION(BlueprintCallable, Category = "GameplayUI")
 	UUserWidget* PushWidget(TSubclassOf<UUserWidget> WidgetClass, ECInputMode InputMode = ECInputMode::None, bool bShowMouseCursor = false, bool bFocusWidget = false, bool bPause = false);
 

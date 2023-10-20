@@ -78,6 +78,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
 	void OnActionRemoved(AActor* InInstigator);
 
+	/**
+	 * Ticks the action, this is called every frame
+	 * @param DeltaTime The deltaTime between the frames
+	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
 	void TickAction(float DeltaTime);
 
@@ -116,6 +120,7 @@ public:
 	
 protected:
 
+	/** Gets the cooldown message for the report status subsystem for the action */
 	virtual FString GetInCooldownMessage() const;
 
 	/** Cached Action Component */

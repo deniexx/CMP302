@@ -39,6 +39,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	UCCombatStatusComponent* CombatComponent;
 
+	/** Action Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCActionComponent* ActionComponent;
 
@@ -56,8 +57,10 @@ protected:
 	/** The appearance alpha value */
 	float AppearanceAlpha;
 
+	/** Tweens the character appearance value */
 	virtual void TweenAppearance(float Value);
 
+	/** Starts the tween for the appearance */
 	void StartTweenAppearance();
 
 public:
@@ -65,7 +68,7 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 
 	/**
-	 * Sets up the actor to be ready, this can include reviving its
+	 * Sets up the actor to be ready, this can include reviving it
 	 */
 	virtual void ReadyActor();
 

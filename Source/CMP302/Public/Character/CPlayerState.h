@@ -20,11 +20,17 @@ public:
 
 	ACPlayerState();
 
+	/** Gets the current currency amount */
 	int32 GetCurrency();
 
+	/** Adds currency to the current player */
 	UFUNCTION(BlueprintCallable, Category = "Currency")
 	void AddCurrency(int32 Amount = 1);
 
+	/**
+	 * Removes currency from the current player
+	 * @return Whether the remove action was successful
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Currency")
 	bool RemoveCurrency(int32 Amount);
 
@@ -40,5 +46,6 @@ protected:
 
 private:
 
+	/** Saves the currency */
 	void SaveCurrency() const;
 };
