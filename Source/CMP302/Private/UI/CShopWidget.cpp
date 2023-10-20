@@ -4,6 +4,7 @@
 #include "UI/CShopWidget.h"
 
 #include "Character/CPlayerState.h"
+#include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "UI/CShopWidgetComponent.h"
@@ -48,12 +49,13 @@ void UCShopWidget::OnCurrencyUpdated(int32 NewAmount, int32 OldAmount)
 	TargetCurrency = NewAmount;
 	if (TweenHandle.IsValid())
 	{
-		TweenSubsystem->StopTween(TweenHandle);
+		TweenSubsystem->StopTween(TweenHandle, true);
+		TweenHandle.Invalidate();
 	}
 
-	StartingCurrency = OldAmount;
-	FTweenDelegate TweenDelegate;
-	TweenDelegate.BindUObject(this, &ThisClass::TweenCurrency);
+	StartingCurrency = CurrentCurrency;
+	FTweenDynamicDelegate TweenDelegate;
+	TweenDelegate.BindDynamic(this, &ThisClass::TweenCurrency);
 	TweenSubsystem->AddTween(TweenHandle, 0, 1, TweenDelegate);
 }
 
@@ -70,13 +72,13 @@ void UCShopWidget::PopulateSlots() const
 			APlayerController* PlayerController = GetOwningPlayerPawn()->GetController<APlayerController>();
 			UCShopWidgetComponent* Component = CreateWidget<UCShopWidgetComponent>(PlayerController, ShopWidgetComponent);
 			Component->Init(Row->ActionClass);
-			ParentVerticalBox->AddChildToVerticalBox(Component);
+			ShopScrollBox->AddChild(Component);
 		}
 	}
 }
 
 void UCShopWidget::TweenCurrency(float Value)
 {
-	const int32 Amount = FMath::InterpEaseOut(TargetCurrency, StartingCurrency,  1 - Value, 1);
-	CurrencyAmount->SetText(FText::AsNumber(Amount));
+	CurrentCurrency = FMath::InterpEaseOut(TargetCurrency, StartingCurrency,  1 - Value, 1);
+	CurrencyAmount->SetText(FText::AsNumber(CurrentCurrency));
 }

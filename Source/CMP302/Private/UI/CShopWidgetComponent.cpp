@@ -9,6 +9,7 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
 
 void UCShopWidgetComponent::Init(TSubclassOf<UCAction> ActionClass)
 {
@@ -53,7 +54,15 @@ void UCShopWidgetComponent::OnClicked()
 	
 	if (PlayerState &&  PlayerState->RemoveCurrency(Cost))
 	{
+		UGameplayStatics::PlaySound2D(OwningPawn, TransactionSuccessfulSound.LoadSynchronous());
 		UCActionComponent* ActionComponent = UCActionComponent::GetActionComponent(OwningPawn);
 		ActionComponent->AddAction(OwningPawn, Action);
+
+		Background->SetIsEnabled(true);
+		DisabledOverlay->SetVisibility(ESlateVisibility::Visible);
+		Background->OnClicked.RemoveAll(this);
+		return;
 	}
+
+	UGameplayStatics::PlaySound2D(OwningPawn, TransactionFailedSound.LoadSynchronous());
 }

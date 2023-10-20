@@ -4,9 +4,7 @@
 #include "Actions/CAction_Shuriken.h"
 
 #include "ActorComponents/CCombatStatusComponent.h"
-#include "Blueprint/UserWidget.h"
 #include "Character/CCommonCharacter.h"
-#include "Kismet/KismetMaterialLibrary.h"
 #include "Projectiles/CProjectile.h"
 #include "System/CGameplayFunctionLibrary.h"
 

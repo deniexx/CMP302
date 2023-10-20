@@ -20,7 +20,6 @@ ACMP302GameMode::ACMP302GameMode()
 	//DefaultPawnClass = PlayerPawnClassFinder.Class;
 
 	SaveSlotName = TEXT("DefaultSave");
-	bIsFirstTutorialLevel = false;
 }
 
 void ACMP302GameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -32,7 +31,7 @@ void ACMP302GameMode::InitGame(const FString& MapName, const FString& Options, F
 
 void ACMP302GameMode::LoadGame()
 {
-	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0) && !bIsFirstTutorialLevel)
+	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0))
 	{
 		CurrentSaveGame = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0));
 	}
@@ -92,4 +91,10 @@ void ACMP302GameMode::BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player)
 {
 	if (Player)
 		Player->OnPlayerHit.AddDynamic(this, &ThisClass::ResetRoom);
+}
+
+void ACMP302GameMode::ResetSaveGame()
+{
+	CurrentSaveGame = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
+	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SaveSlotName, 0);
 }

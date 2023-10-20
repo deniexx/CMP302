@@ -29,6 +29,8 @@ public:
 
 	int GetIndex() const { return Index; }
 
+	bool operator==(const FTweenHandle& lhs) const { return lhs.Index == Index; }
+
 private:
 	
 	uint64 Index = 0;
@@ -50,7 +52,8 @@ public:
 
 	FTweenDelegate Delegate;
 	FTweenDynamicDelegate DynamicDelegate;
-	
+
+	bool bRemove = false;
 	bool bActive = false;
 	float TweenStart = 0;
 	float TweenEnd = 0;
@@ -61,6 +64,7 @@ public:
 	FTweenHandle* Handle = nullptr;
 
 	bool operator==(const FTween& lhs) const { return lhs.Index == Index; }
+	bool operator==(const FTweenHandle& lhs) const { return &lhs == Handle; }
 };
 
 /**
@@ -119,11 +123,12 @@ public:
 	void SetTweenActive(const FTweenHandle& TweenHandle, bool bIsActive);
 
 	/**
-	 * Stops a tween and removes it from the subsystem, this will also invalidate the handle
+	 * Stops a tween and removes it from the subsystem
 	 * @param TweenHandle The handle of the ween to use to find said tween
+	 * @param bRemove Whether to remove the handle or not, NOTE if this is true, the handle will be invalidated at the end of the Tick
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TweenSubsystem")
-	void StopTween(FTweenHandle& TweenHandle);
+	void StopTween(FTweenHandle& TweenHandle, bool bRemove = true);
 
 private:
 	

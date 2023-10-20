@@ -7,6 +7,7 @@
 #include "System/TweenSubsystem.h"
 #include "CShopWidget.generated.h"
 
+class UScrollBox;
 class UDataTable;
 class UVerticalBox;
 class UTextBlock;
@@ -30,6 +31,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UVerticalBox* ParentVerticalBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UScrollBox* ShopScrollBox;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CurrencyAmount;
@@ -56,4 +60,7 @@ private:
 
 	uint32 StartingCurrency;
 	uint32 TargetCurrency;
+
+	/* Used to track the interpolated value, so that we don't get jumps on a new purchase */
+	uint32 CurrentCurrency;
 };

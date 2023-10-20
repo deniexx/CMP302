@@ -19,7 +19,7 @@ class CMP302_API ACProjectile : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ACProjectile();
-
+	
 	virtual void PostInitializeComponents() override;
 
 	/**
@@ -28,6 +28,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetAttackStatus(EAttackStatusType NewAttackStatus);
+
+	/**
+	 * Stops the projectile in place and disables its collision
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void StopAndDisableCollision();
 
 protected:
 	
@@ -73,6 +79,12 @@ protected:
 
 protected:
 
+	virtual void BeginPlay() override;
+
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Projectile")
 	void OnAttackStatusUpdated();
 	
@@ -80,9 +92,4 @@ protected:
 	 * Plays the visual and sound extras for this projectile upon colliding(hitting) with something
 	 */
 	void PlayExtrasOnHit() const;
-	
-	/* In-built function that is called when an overlap happens */
-	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
-
-	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 };

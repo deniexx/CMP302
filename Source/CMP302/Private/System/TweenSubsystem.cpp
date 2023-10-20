@@ -42,9 +42,14 @@ void UTweenSubsystem::Tick(float DeltaTime)
 			/* If we have reached the end of the tween, remove the object */
 			if (Tweens[i].TweenValue >= Tweens[i].TweenEnd)
 			{
-				Tweens[i].Handle->Invalidate();
-				Tweens.RemoveAt(i);
+				Tweens[i].bActive = false;
+				Tweens[i].bRemove = true;
 			}
+		}
+		else if (Tweens[i].bRemove)
+		{
+			Tweens[i].Handle->Invalidate();
+			Tweens.RemoveAt(i);
 		}
 	}
 }
@@ -71,7 +76,7 @@ UWorld* UTweenSubsystem::GetTickableGameObjectWorld() const
 
 bool UTweenSubsystem::IsTickableWhenPaused() const
 {
-	return false;
+	return true;
 }
 
 TStatId UTweenSubsystem::GetStatId() const
@@ -117,17 +122,22 @@ void UTweenSubsystem::SetTweenActive(const FTweenHandle& TweenHandle, bool bIsAc
 	}
 }
 
-void UTweenSubsystem::StopTween(FTweenHandle& TweenHandle)
+void UTweenSubsystem::StopTween(FTweenHandle& TweenHandle, bool bRemove)
 {
 	if (!TweenHandle.IsValid()) return;
-	
-	for (const FTween& Tween : Tweens)
+
+	for (int i = Tweens.Num() - 1; i >= 0; --i)
 	{
-		if (Tween.Index == TweenHandle.GetIndex())
+		if (Tweens[i] == TweenHandle)
 		{
-			TweenHandle.Invalidate();
-			Tweens.Remove(Tween);
-			break;
+			Tweens[i].bActive = false;
+
+			if (bRemove)
+			{
+				Tweens[i].bRemove = true;
+			}
+
+			return;
 		}
 	}
 }

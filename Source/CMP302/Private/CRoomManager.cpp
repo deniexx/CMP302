@@ -77,7 +77,7 @@ void ACRoomManager::ResetRoom()
 void ACRoomManager::EnemyKilled()
 {
 	--RemainingEnemies;
-	if (RemainingEnemies == 0)
+	if (RemainingEnemies <= 0)
 		RoomCleared();
 }
 

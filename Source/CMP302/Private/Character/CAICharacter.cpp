@@ -10,7 +10,6 @@
 
 ACAICharacter::ACAICharacter()
 {
-	
 }
 
 void ACAICharacter::BeginPlay()
@@ -25,12 +24,15 @@ void ACAICharacter::BeginPlay()
 	}
 
 	MeshTransform = GetMesh()->GetComponentTransform();
+	ReadyActor();
 
 	InitAI();
 }
 
 void ACAICharacter::Tick(float DeltaTime)
 {
+	if (bDead) return;
+	
 	Super::Tick(DeltaTime);
 	
 	TickAI(DeltaTime);
@@ -61,27 +63,23 @@ void ACAICharacter::OnHitTaken(const FAttackData& AttackData)
 void ACAICharacter::TweenAppearance(float Value)
 {
 	Super::TweenAppearance(Value);
-
+	
 	if (bDead && Value <= 0.f)
 	{
-		Destroy();
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
 void ACAICharacter::ReadyActor()
 {
 	Super::ReadyActor();
-
-	GetMesh()->SetWorldTransform(MeshTransform);
+	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	GetMesh()->SetSimulatePhysics(false);
 	GetMesh()->SetCollisionProfileName("CharacterMesh");
 	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-	GetMesh()->SetWorldTransform(MeshTransform);
-	GetMesh()->SetMobility(EComponentMobility::Movable);
-		
-	InitAI();
 }
 
 void ACAICharacter::TickAI_Implementation(float DeltaSeconds)

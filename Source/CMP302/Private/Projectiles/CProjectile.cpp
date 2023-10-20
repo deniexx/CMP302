@@ -33,6 +33,13 @@ ACProjectile::ACProjectile()
 	ImpactStrength = 30000.f;
 }
 
+void ACProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SphereComponent->IgnoreActorWhenMoving(GetInstigator(), true);
+}
+
 void ACProjectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -47,6 +54,16 @@ void ACProjectile::SetAttackStatus(EAttackStatusType NewAttackStatus)
 {
 	AttackStatus = NewAttackStatus;
 	OnAttackStatusUpdated();
+}
+
+void ACProjectile::StopAndDisableCollision()
+{
+	const FHitResult HitResult;
+	ProjectileMovementComponent->StopSimulating(HitResult);
+	SphereComponent->AddImpulse(-GetVelocity(), NAME_None, true);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	SphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	SphereComponent->SetSphereRadius(5.f);
 }
 
 void ACProjectile::OnAttackStatusUpdated_Implementation()
@@ -90,7 +107,7 @@ void ACProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 }
 
 void ACProjectile::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp,
-	bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+                             bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 

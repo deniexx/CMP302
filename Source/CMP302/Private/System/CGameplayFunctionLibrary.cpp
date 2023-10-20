@@ -132,4 +132,3 @@ void UCGameplayFunctionLibrary::AddTutorialMessage(const UObject* WorldContextOb
 	if (const UCStatusReportSubsystem* StatusReportSubsystem = GetStatusReportSubsystem(WorldContextObject))
 		StatusReportSubsystem->AddTutorialMessage(TutorialMessage, KeysToDisplay);
 }
-

@@ -46,6 +46,12 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Price;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSoftObjectPtr<USoundBase> TransactionSuccessfulSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSoftObjectPtr<USoundBase> TransactionFailedSound;
 	
 private:
 

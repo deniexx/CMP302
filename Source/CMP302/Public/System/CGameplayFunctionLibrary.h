@@ -10,6 +10,7 @@
 class ACCommonCharacter;
 class ACProjectile;
 class UCStatusReportSubsystem;
+class UProceduralMeshComponent;
 
 /**
  * 

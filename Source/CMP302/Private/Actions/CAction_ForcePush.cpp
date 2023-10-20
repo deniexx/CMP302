@@ -6,6 +6,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ActorComponents/CCombatStatusComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Projectiles/CProjectile.h"
 
 static TAutoConsoleVariable<int32> CVarShowDebugForcePush(
 	TEXT("ShowDebugForcePush"),
@@ -36,7 +38,7 @@ void UCAction_ForcePush::StartAction_Implementation(AActor* InInstigator)
 	TArray<FHitResult> HitResults;
 	bool bSuccess = false;
 
-	TArray<AActor*> IgnoredActors = { Character };	
+	TArray<AActor*> IgnoredActors = { Character };
 
 	const bool bShowDebug = CVarShowDebugForcePush.GetValueOnAnyThread() > 0;
 	const EDrawDebugTrace::Type DebugDrawType = bShowDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
@@ -47,12 +49,16 @@ void UCAction_ForcePush::StartAction_Implementation(AActor* InInstigator)
 	{
 		for (const FHitResult& Hit : HitResults)
 		{	
-			if (ACCommonCharacter* HitCharacter = Cast<ACCommonCharacter>(Hit.GetActor()))
+			if (const ACCommonCharacter* HitCharacter = Cast<ACCommonCharacter>(Hit.GetActor()))
 			{
 				FVector Direction = HitCharacter->GetActorLocation() - Character->GetActorLocation();
-				float Power = 1 - (Direction.Length() / (PushRange + ForwardOffset));
+				const float Power = 1 - (Direction.Length() / (PushRange + ForwardOffset));
 				Direction.Normalize();
 				HitCharacter->GetCharacterMovement()->AddImpulse(Direction * Power * PushForce, true);
+			}
+			else if (ACProjectile* Projectile = Cast<ACProjectile>(Hit.GetActor())) // we hit a projectile, so stop it
+			{
+				Projectile->StopAndDisableCollision();
 			}
 		}
 	}

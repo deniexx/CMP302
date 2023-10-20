@@ -30,16 +30,19 @@ class CMP302_API UCSaveGame : public USaveGame
 
 	
 public:
-
-	UPROPERTY()
-	TArray<TSubclassOf<UCAction>> PlayerActions;
-
+	
 	UPROPERTY()
 	TArray<FActorSaveData> SaveData;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
+	TArray<TSubclassOf<UCAction>> PlayerActions;
+	
+	UPROPERTY(BlueprintReadOnly)
 	TMap<FString, FTransform> SpawnTransforms;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	int32 Currency = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString MapName = TEXT("NoMap");
 };

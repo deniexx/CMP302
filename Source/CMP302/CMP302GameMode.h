@@ -29,6 +29,11 @@ public:
 	
 	void BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player);
 
+protected:
+
+	UFUNCTION(BlueprintCallable)
+	void ResetSaveGame();
+
 private:
 
 	void LoadGame();
@@ -37,12 +42,9 @@ private:
 	void ResetRoom(int RoomIndex);
 
 	UPROPERTY(EditDefaultsOnly)
-	bool bIsFirstTutorialLevel;
-
-	UPROPERTY(EditDefaultsOnly)
 	FString SaveSlotName;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	UCSaveGame* CurrentSaveGame;
 
 	UPROPERTY()

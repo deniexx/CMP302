@@ -42,23 +42,27 @@ void ACPlayerCharacter::BeginPlay()
 	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
 	GameMode->BindToOnHitDelegateForPlayer(this);
 	
-	const UCSaveGame* SaveGame = GameMode->GetSaveGame();
-	const FString LevelName = GetWorld()->GetMapName();
+	UCSaveGame* SaveGame = GameMode->GetSaveGame();
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 
 	if (SaveGame->SpawnTransforms.Find(LevelName))
 	{
+		bResetTransform = true;
 		SpawnTransform = SaveGame->SpawnTransforms[LevelName];
 	}
 	else
 	{
 		SpawnTransform = GetActorTransform();
+		
+		if (!LevelName.Equals("L_MainMenu", ESearchCase::IgnoreCase))
+			SaveGame->MapName = LevelName;
+
+		GameMode->WriteSaveGame();
 	}
 	
-	bResetTransform = true;
 	ReadyActor();
 }
-
-
 
 void ACPlayerCharacter::OnHitTaken(const FAttackData& AttackData)
 {
@@ -78,7 +82,9 @@ void ACPlayerCharacter::ReadyActor()
 	if (bResetTransform)
 	{
 		bResetTransform = false;
-		SetActorTransform(SpawnTransform, false, nullptr, ETeleportType::ResetPhysics);
+		FHitResult* HitResult = new FHitResult();
+		SetActorTransform(SpawnTransform, false, HitResult, ETeleportType::ResetPhysics);
+		delete HitResult;
 	}
 }
 
@@ -152,9 +158,11 @@ void ACPlayerCharacter::SetSpawnTransform(const FTransform& InSpawnTransform)
 	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
 	UCSaveGame* SaveGame = GameMode->GetSaveGame();
 
-	const FString LevelName = GetWorld()->GetMapName();
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 	
-	SaveGame->SpawnTransforms.Emplace(LevelName, SpawnTransform);
+	SaveGame->SpawnTransforms.Add(LevelName, SpawnTransform);
+	SaveGame->MapName = LevelName;
 	
 	GameMode->WriteSaveGame();
 }

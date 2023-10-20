@@ -24,8 +24,11 @@ void ACEnemySpawner::Init(ACRoomManager* InRoomManager)
 
 int32 ACEnemySpawner::SpawnEnemy()
 {
-	if (IsValid(EnemyToSpawn) && !SpawnedEnemy)
+	if (IsValid(EnemyToSpawn))
 	{
+		if (SpawnedEnemy)
+			SpawnedEnemy->Destroy();
+			
 		const FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -49,7 +52,6 @@ void ACEnemySpawner::KillEnemy()
 
 void ACEnemySpawner::OnHit(const FAttackData& AttackData)
 {
-	SpawnedEnemy = nullptr;
 	RoomManager->EnemyKilled();
 }
 
