@@ -27,7 +27,7 @@ int32 ACEnemySpawner::SpawnEnemy()
 	if (IsValid(EnemyToSpawn))
 	{
 		if (SpawnedEnemy)
-			SpawnedEnemy->Destroy();
+			KillEnemy();
 			
 		const FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 		FActorSpawnParameters SpawnParameters;
@@ -45,6 +45,7 @@ void ACEnemySpawner::KillEnemy()
 {
 	if (SpawnedEnemy)
 	{
+		UCCombatStatusComponent::GetCombatStatusComponent(SpawnedEnemy)->OnHitTaken.RemoveAll(this);
 		SpawnedEnemy->Destroy();
 		SpawnedEnemy = nullptr;
 	}

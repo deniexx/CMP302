@@ -2,15 +2,12 @@
 
 #include "CMP302GameMode.h"
 
-#include "EngineUtils.h"
-#include "Character/CAICharacter.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "System/CSaveGame.h"
 #include "UObject/ConstructorHelpers.h"
 #include "CRoomManager.h"
 #include "Character/CPlayerCharacter.h"
-#include "Character/CPlayerState.h"
 
 ACMP302GameMode::ACMP302GameMode()
 	: Super()
@@ -58,11 +55,13 @@ UCSaveGame* ACMP302GameMode::GetSaveGame() const
 void ACMP302GameMode::WriteSaveGame()
 {
 	CurrentSaveGame->SaveData.Empty();
-	
+
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 	for (const ACRoomManager* RoomManager : RoomManagers)
 	{
 		FActorSaveData SaveData;
-		SaveData.ActorName = RoomManager->GetName();
+		SaveData.ActorName = LevelName.Append(RoomManager->GetName());
 		SaveData.bCleared = RoomManager->GetIsCleared();
 		CurrentSaveGame->SaveData.Add(SaveData);
 	}
@@ -75,10 +74,14 @@ void ACMP302GameMode::AddRoomManager(ACRoomManager* RoomManager)
 	if (RoomManager)
 	{
 		RoomManager->SetRoomIndex(RoomManagers.AddUnique(RoomManager));
-	
+
+		FString ToCheck = GetWorld()->GetMapName();
+		ToCheck.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+		ToCheck.Append(RoomManager->GetName());
+		
 		for (const FActorSaveData& SaveData : CurrentSaveGame->SaveData)
 		{
-			if (SaveData.ActorName == RoomManager->GetName())
+			if (SaveData.ActorName == ToCheck)
 			{
 				RoomManager->SetIsCleared(SaveData.bCleared);
 				break;
@@ -98,3 +101,13 @@ void ACMP302GameMode::ResetSaveGame()
 	CurrentSaveGame = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SaveSlotName, 0);
 }
+
+#if WITH_EDITOR
+void ACMP302GameMode::RestartRooms()
+{
+	for (ACRoomManager* RoomManager : RoomManagers)
+	{
+		RoomManager->SetIsCleared(false);
+	}
+}
+#endif

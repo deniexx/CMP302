@@ -34,6 +34,12 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ResetSaveGame();
 
+#if WITH_EDITOR
+
+	UFUNCTION(Exec)
+	void RestartRooms();
+#endif
+
 private:
 
 	void LoadGame();
