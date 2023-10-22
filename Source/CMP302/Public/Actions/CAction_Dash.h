@@ -93,6 +93,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Dash Visuals")
 	UMaterialParameterCollection* UIMaterialParameters;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* DashSound;
+
 	/** Interrupts the dash and resets it if player is on the ground */
 	UFUNCTION()
 	void InterruptDash();

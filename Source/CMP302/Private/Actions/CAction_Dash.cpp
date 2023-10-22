@@ -201,7 +201,8 @@ void UCAction_Dash::Dash()
 			}
 		}
 	}
-	
+
+	UGameplayStatics::PlaySound2D(GetOuter(), DashSound);
 	Character->SetActorLocation(DashLocation, false, nullptr, ETeleportType::ResetPhysics);
 	const FVector VelocityDirection = Character->GetActorForwardVector();
 	MovementComponent->Velocity = VelocityDirection * VelocityAfterDash;

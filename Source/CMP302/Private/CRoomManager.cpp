@@ -84,7 +84,6 @@ void ACRoomManager::EnemyKilled()
 void ACRoomManager::RoomCleared()
 {
 	bRoomCleared = true;
-	RoomExtends->OnComponentBeginOverlap.RemoveAll(this);
 
 	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
 	GameMode->WriteSaveGame();

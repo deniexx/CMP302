@@ -35,7 +35,6 @@ protected:
 	void ResetSaveGame();
 
 #if WITH_EDITOR
-
 	UFUNCTION(Exec)
 	void RestartRooms();
 #endif

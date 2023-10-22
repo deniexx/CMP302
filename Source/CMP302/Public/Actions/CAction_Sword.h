@@ -41,6 +41,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Visuals")
 	UAnimMontage* ReflectAnimMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* SlashSound;
+
 	/** The maximum distance to snap to a target */
 	UPROPERTY(EditDefaultsOnly, Category = "Snap")
 	float MaxSnapDistance;

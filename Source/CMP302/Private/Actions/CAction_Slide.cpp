@@ -136,6 +136,8 @@ void UCAction_Slide::BeginSliding()
 	const FString Message = FString::Printf(TEXT("%s engaged."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 
+	GetOwningComponent()->ActiveGameplayTags.AppendTags(SlidingStateTags);
+
 	AppliedCameraModifier->EnableModifier();
 }
 
@@ -172,9 +174,11 @@ void UCAction_Slide::EndSliding()
 	
 	CurrentSlideDuration = 0.f;
 	bSliding = false;
-
+	
 	const FString Message = FString::Printf(TEXT("%s disengaged."), *ActionName.ToString());
 	UCGameplayFunctionLibrary::AddStatusReportMessage(GetOuter(), Message);
 
+	GetOwningComponent()->ActiveGameplayTags.RemoveTags(SlidingStateTags);
+	
 	AppliedCameraModifier->DisableModifier();
 }

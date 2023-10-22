@@ -36,6 +36,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Tags")
 	FGameplayTagContainer CrouchingTags;
 
+	UPROPERTY(EditAnywhere, Category = "Tags")
+	FGameplayTagContainer SlidingStateTags;
+
 	/** The tag for when we are in the air (used for calculating the duration of the slide) */
 	UPROPERTY(EditAnywhere, Category = "Tags")
 	FGameplayTag InAirTag;

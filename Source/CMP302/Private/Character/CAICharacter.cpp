@@ -6,6 +6,7 @@
 #include "ActorComponents/CCombatStatusComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "System/CGameplayFunctionLibrary.h"
 
 ACAICharacter::ACAICharacter()
@@ -26,6 +27,8 @@ void ACAICharacter::BeginPlay()
 	MeshTransform = GetMesh()->GetComponentTransform();
 	ReadyActor();
 
+	UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, GetActorLocation());
+	
 	InitAI();
 }
 

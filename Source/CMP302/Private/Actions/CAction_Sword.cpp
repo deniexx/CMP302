@@ -5,6 +5,7 @@
 
 #include "ActorComponents/CCombatStatusComponent.h"
 #include "Character/CCommonCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Projectiles/CProjectile.h"
 #include "System/CGameplayFunctionLibrary.h"
@@ -63,7 +64,11 @@ void UCAction_Sword::StartAction_Implementation(AActor* InInstigator)
 	}
 	
 	SnapToTargetIfPossible(Character);
-	TraceForEnemyHits(Character);
+	
+	if (TraceForEnemyHits(Character))
+	{
+		UGameplayStatics::PlaySound2D(GetOuter(), SlashSound);
+	}
 
 	if (NextComboAttack == 1)
 	{

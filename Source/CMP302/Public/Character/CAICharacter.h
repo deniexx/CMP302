@@ -22,6 +22,9 @@ public:
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* SpawnSound;
+
 	UPROPERTY()
 	FTransform MeshTransform;
 
