@@ -20,6 +20,10 @@ void UCShopWidget::NativeConstruct()
 
 	PopulateSlots();
 
+	StartingCurrency = 0;
+	Currency = 0;
+	CurrentCurrency = 0;
+
 	ACPlayerState* PlayerState = GetOwningPlayer()->GetPlayerState<ACPlayerState>();
 	PlayerState->OnCurrencyUpdated.AddDynamic(this, &ThisClass::OnCurrencyUpdated);
 	CurrencyAmount->SetText(FText::AsNumber(PlayerState->GetCurrency()));
@@ -45,15 +49,15 @@ void UCShopWidget::OnCurrencyUpdated(int32 NewAmount, int32 OldAmount)
 		CurrencyAmount->SetText(FText::AsNumber(NewAmount));
 		return;
 	}
-
-	TargetCurrency = NewAmount;
+	
 	if (TweenHandle.IsValid())
 	{
 		TweenSubsystem->StopTween(TweenHandle, true);
 		TweenHandle.Invalidate();
 	}
 
-	StartingCurrency = CurrentCurrency;
+	TargetCurrency = NewAmount;
+	StartingCurrency = CurrentCurrency == 0 ? OldAmount : CurrentCurrency;
 	FTweenDynamicDelegate TweenDelegate;
 	TweenDelegate.BindDynamic(this, &ThisClass::TweenCurrency);
 	TweenSubsystem->AddTween(TweenHandle, 0, 1, TweenDelegate);
