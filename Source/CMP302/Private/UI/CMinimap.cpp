@@ -37,9 +37,6 @@ void UCMinimap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		FVector2D ScreenPosition;
 		ScreenPosition.Y = -(ScreenOffset * FMath::Cos(Angle));
 		ScreenPosition.X = ScreenOffset * FMath::Sin(Angle);
-
-		UE_LOG(LogCMP, Warning, TEXT("%.2f angle"), Angle);
-
 		Widget->SetRenderTranslation(ScreenPosition);
 	}
 }

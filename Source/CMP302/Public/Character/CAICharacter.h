@@ -22,9 +22,24 @@ public:
 
 protected:
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UStaticMeshComponent* WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UStaticMeshComponent* DroneMesh;
+
 	UPROPERTY(EditDefaultsOnly)
 	USoundBase* SpawnSound;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
+	float DroneStartHeightOffset;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
+	float DroneEndHeightOffset;
+
+	UFUNCTION()
+	void TweenDrone(float Value);
+	
 	UPROPERTY()
 	FTransform MeshTransform;
 
@@ -36,6 +51,9 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void InitAI();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void BeginAILogic();
 
 	virtual void TweenAppearance(float Value) override;
 

@@ -30,7 +30,7 @@ ACProjectile::ACProjectile()
 	LifeSpan = 5.f;
 	Pierce = 1;
 	PiercedEnemies = 0;
-	ImpactStrength = 30000.f;
+	ImpactStrength = 1000.f;
 }
 
 void ACProjectile::BeginPlay()

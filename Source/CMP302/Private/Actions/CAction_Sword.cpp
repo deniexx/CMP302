@@ -232,7 +232,7 @@ bool UCAction_Sword::TraceForEnemyHits(ACCommonCharacter* Character) const
 		FAttackData AttackData;
 		AttackData.Instigator = InstigatorActor;
 		AttackData.AttackStatusType = CombatStatusComponent->GetAttackStatusType();
-		AttackData.ImpactStrength = 3000.f;
+		AttackData.ImpactStrength = 1000.f;
 		bSuccess |= UCGameplayFunctionLibrary::TryRegisterHit(AttackData, HitActor);
 	}
 
