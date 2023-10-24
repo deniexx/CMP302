@@ -34,6 +34,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ResetSaveGame();
 
+	UPROPERTY(EditDefaultsOnly)
+	FString SaveSlotName;
+
 #if WITH_EDITOR
 	UFUNCTION(Exec)
 	void RestartRooms();
@@ -46,12 +49,9 @@ private:
 	UFUNCTION()
 	void ResetRoom(int RoomIndex);
 
-	UPROPERTY(EditDefaultsOnly)
-	FString SaveSlotName;
-
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	UCSaveGame* CurrentSaveGame;
-
+	
 	UPROPERTY()
 	TArray<ACRoomManager*> RoomManagers;
 };

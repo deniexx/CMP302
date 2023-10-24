@@ -103,7 +103,7 @@ void UCAction_WallRun::TickAction_Implementation(float DeltaTime)
 		const FVector WallRunDirection = DirectionRotation.RotateVector(WallHit.ImpactNormal);
 		
 		/** Slighty faster than the max walk speed */
-		MovementComponent->Velocity = WallRunDirection * (MovementComponent->MaxWalkSpeed + 100.f);
+		MovementComponent->Velocity = WallRunDirection * (MovementComponent->MaxWalkSpeed + 150.f);
 		MovementComponent->Velocity.Z = 0;
 		MovementComponent->SetPlaneConstraintEnabled(true);
 		MovementComponent->SetPlaneConstraintOrigin(WallHit.ImpactPoint);

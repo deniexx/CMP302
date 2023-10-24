@@ -60,7 +60,8 @@ void ACPlayerCharacter::BeginPlay()
 
 		GameMode->WriteSaveGame();
 	}
-	
+
+	CombatComponent->UpdateAttackStatusType(EAttackStatusType::White);
 	ReadyActor();
 }
 
@@ -127,7 +128,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(SwitchSpecialAttackInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::SwitchSpecialAttack);
 
 		// Switch Status
-		EnhancedInputComponent->BindAction(SwitchAttackStatusInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::SwitchAttackStatus);
+		//EnhancedInputComponent->BindAction(SwitchAttackStatusInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::SwitchAttackStatus);
 
 		// Dash
 		EnhancedInputComponent->BindAction(DashInputAction, ETriggerEvent::Started, this, &ACPlayerCharacter::BeginDash);
