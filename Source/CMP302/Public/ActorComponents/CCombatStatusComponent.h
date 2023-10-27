@@ -74,6 +74,9 @@ private:
 	/** The Lerp Progress */
 	float ColorLerpAlpha;
 
+	/** Whether we have been hit */
+	bool bHit;
+
 	/** How fast should the color lerp */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float ColorLerpSpeed;

@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	FString SaveSlotName;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> DeathWidgetClass; 
+
 #if WITH_EDITOR
 	UFUNCTION(Exec)
 	void RestartRooms();
@@ -47,7 +50,7 @@ private:
 	void LoadGame();
 
 	UFUNCTION()
-	void ResetRoom(int RoomIndex);
+	void OnPlayerHit(int RoomIndex);
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	UCSaveGame* CurrentSaveGame;

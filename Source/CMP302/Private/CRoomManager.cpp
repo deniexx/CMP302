@@ -71,7 +71,6 @@ void ACRoomManager::SetIsCleared(bool bNewState)
 void ACRoomManager::ResetRoom()
 {
 	KillEnemies();
-	SpawnEnemies();
 }
 
 void ACRoomManager::EnemyKilled()

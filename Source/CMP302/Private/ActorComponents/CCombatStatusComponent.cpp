@@ -33,6 +33,7 @@ UCCombatStatusComponent::UCCombatStatusComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	bHit = false;
 	bCanBeHit = true;
 	bCanChangeStatus = true;
 	ColorLerpAlpha = 0.f;
@@ -156,7 +157,12 @@ bool UCCombatStatusComponent::TryRegisterHit(const FAttackData& AttackData)
 	}
 
 	// @TODO: Potentially claim a kill if we implement an interface (can be used to track certain statistics)
-	OnHitTaken.Broadcast(AttackData);
+	if (!bHit)
+	{
+		OnHitTaken.Broadcast(AttackData);
+		bHit = true;
+	}
+	
 
 	return true;
 }

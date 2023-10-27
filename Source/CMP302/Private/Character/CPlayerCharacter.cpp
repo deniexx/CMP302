@@ -71,7 +71,10 @@ void ACPlayerCharacter::OnHitTaken(const FAttackData& AttackData)
 
 	OnPlayerHit.Broadcast(RoomIndex);
 	bResetTransform = true;
-	ReadyActor();
+	//ReadyActor();
+
+	// Game mode will add death menu to the screen (this is done by the game mode, because we have different death screens
+	// based on which game mode we are currently playing)
 }
 
 void ACPlayerCharacter::ReadyActor()

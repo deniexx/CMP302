@@ -8,6 +8,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "CRoomManager.h"
 #include "Character/CPlayerCharacter.h"
+#include "System/CGameplayUISubsystem.h"
 
 ACMP302GameMode::ACMP302GameMode()
 	: Super()
@@ -39,12 +40,16 @@ void ACMP302GameMode::LoadGame()
 	}
 }
 
-void ACMP302GameMode::ResetRoom(int RoomIndex)
+void ACMP302GameMode::OnPlayerHit(int RoomIndex)
 {
 	if (RoomIndex < RoomManagers.Num())
 	{
 		RoomManagers[RoomIndex]->ResetRoom();
 	}
+
+	UCGameplayUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UCGameplayUISubsystem>();
+
+	UISubsystem->PushWidget(DeathWidgetClass, ECInputMode::UIOnly, true, true, true);
 }
 
 UCSaveGame* ACMP302GameMode::GetSaveGame() const
@@ -93,7 +98,7 @@ void ACMP302GameMode::AddRoomManager(ACRoomManager* RoomManager)
 void ACMP302GameMode::BindToOnHitDelegateForPlayer(ACPlayerCharacter* Player)
 {
 	if (Player)
-		Player->OnPlayerHit.AddDynamic(this, &ThisClass::ResetRoom);
+		Player->OnPlayerHit.AddDynamic(this, &ThisClass::OnPlayerHit);
 }
 
 void ACMP302GameMode::ResetSaveGame()

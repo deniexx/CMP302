@@ -70,6 +70,7 @@ public:
 	/**
 	 * Sets up the actor to be ready, this can include reviving it
 	 */
+	UFUNCTION(BlueprintCallable)
 	virtual void ReadyActor();
 
 	/**

@@ -192,13 +192,13 @@ private:
 
 	virtual void OnHitTaken(const FAttackData& AttackData) override;
 
-	virtual void ReadyActor() override;
-
 	virtual void TweenAppearance(float Value) override;
 
 	virtual void PawnClientRestart() override;
 
 public:
+	
+	virtual void ReadyActor() override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

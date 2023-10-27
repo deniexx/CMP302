@@ -7,6 +7,7 @@
 #include "EnvironmentQuery/EnvQueryInstanceBlueprintWrapper.h"
 #include "CArenaGameMode.generated.h"
 
+struct FAttackData;
 class UEnvQuery;
 class ACAICharacter;
 /**
@@ -19,6 +20,8 @@ class CMP302_API ACArenaGameMode : public ACMP302GameMode
 
 public:
 	virtual void StartPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 
 protected:
 
@@ -35,6 +38,18 @@ protected:
 	UCurveFloat* DifficultyCurve;
 
 private:
+
+	bool bPlayerAlive;
+
+	UFUNCTION()
+	void OnBotKilled(const FAttackData& AttackData);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Arena", meta = (AllowPrivateAccess = true))
+	int32 BotsKilled;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Arena", meta = (AllowPrivateAccess = true))
+	double TimeSurvived;
+	
 	UFUNCTION()
 	void OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 	

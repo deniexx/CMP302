@@ -5,6 +5,7 @@
 
 #include "CLogChannels.h"
 #include "EngineUtils.h"
+#include "ActorComponents/CCombatStatusComponent.h"
 #include "Character/CAICharacter.h"
 #include "EnvironmentQuery/EnvQueryInstanceBlueprintWrapper.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
@@ -21,7 +22,16 @@ void ACArenaGameMode::StartPlay()
 {
 	Super::StartPlay();
 
+	BotsKilled = 0;
 	GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnTimerInterval, true);
+}
+
+void ACArenaGameMode::Tick(float DeltaSeconds)
+{
+	if (bPlayerAlive)
+	{
+		TimeSurvived += DeltaSeconds;
+	}
 }
 
 void ACArenaGameMode::SpawnBotTimerElapsed()
@@ -41,7 +51,7 @@ void ACArenaGameMode::SpawnBotTimerElapsed()
 }
 
 void ACArenaGameMode::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
-	EEnvQueryStatus::Type QueryStatus)
+                                      EEnvQueryStatus::Type QueryStatus)
 {
 	if (QueryStatus != EEnvQueryStatus::Success)
 	{
@@ -79,6 +89,13 @@ void ACArenaGameMode::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryIn
 
 	if (SpawnLocations.Num() > 0)
 	{
-		AActor* NewBot = GetWorld()->SpawnActor<AActor>(BotClass, SpawnLocations[0], FRotator::ZeroRotator);
+		const AActor* NewBot = GetWorld()->SpawnActor<AActor>(BotClass, SpawnLocations[0], FRotator::ZeroRotator);
+		if (UCCombatStatusComponent* CombatStatusComponent = UCCombatStatusComponent::GetCombatStatusComponent(NewBot))
+			CombatStatusComponent->OnHitTaken.AddDynamic(this, &ThisClass::OnBotKilled);
 	}
+}
+
+void ACArenaGameMode::OnBotKilled(const FAttackData& AttackData)
+{
+	++BotsKilled;
 }

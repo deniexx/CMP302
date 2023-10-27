@@ -61,7 +61,7 @@ void UCGameplayUISubsystem::SetInputMode(const FGameplayUIData& Data)
 			ActionComponent->ActiveGameplayTags.RemoveTag(ActionComponent->GetDefaultBlockedTag());
 			break;
 		}
-		case ECInputMode::UIOnly: // This is UI Only!
+		case ECInputMode::UIOnly:
 		{
 			FInputModeGameAndUI InputModeGameAndUI;
 			if (Data.bFocusWidget)
