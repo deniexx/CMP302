@@ -52,8 +52,6 @@ void UCStatusReportWidget::AddTutorialWidget(const FString& TutorialMessage, con
 			FSlateBrush SlateBrush;
 			SlateBrush.SetImageSize(FVector2D(60.f, 60.f));
 			SlateBrush.SetResourceObject(TextureToSet);
-			//Image->SetBrushFromTexture(TextureToSet);
-			//Image->SetDesiredSizeOverride(FVector2D(60.f, 60.f));
 			Image->SetBrush(SlateBrush);
 
 			TutorialWidget->KeysHorizontalBox->AddChildToHorizontalBox(Image);

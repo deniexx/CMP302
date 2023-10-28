@@ -30,7 +30,9 @@ void ACArenaGameMode::StartPlay()
 
 	TimeSurvived = 0;
 	BotsKilled = 0;
-	GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnTimerInterval, true);
+
+	const float SpawnDelay = SpawnIntervalCurve->GetFloatValue(GetWorld()->TimeSeconds);
+	GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnDelay);
 }
 
 void ACArenaGameMode::Tick(float DeltaSeconds)
@@ -43,12 +45,6 @@ void ACArenaGameMode::Tick(float DeltaSeconds)
 
 void ACArenaGameMode::SpawnBotTimerElapsed()
 {
-	if(CVarSpawnBots.GetValueOnGameThread() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Bot spawning disabled via cvar 'CvasSpawnBots'."));
-		return;
-	}
-
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
 
 	if (ensure(QueryInstance))
@@ -60,6 +56,14 @@ void ACArenaGameMode::SpawnBotTimerElapsed()
 void ACArenaGameMode::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
                                       EEnvQueryStatus::Type QueryStatus)
 {
+	if(CVarSpawnBots.GetValueOnGameThread() > 0)
+	{
+		const float SpawnDelay = SpawnIntervalCurve->GetFloatValue(GetWorld()->TimeSeconds);
+		GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnDelay);
+		
+		UE_LOG(LogTemp, Warning, TEXT("Bot spawning disabled via cvar 'CvasSpawnBots'."));
+		return;
+	}
 	if (QueryStatus != EEnvQueryStatus::Success)
 	{
 		UE_LOG(LogCMP, Warning, TEXT("Spawn bot EQS Query Failed!"));
@@ -100,6 +104,9 @@ void ACArenaGameMode::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		if (UCCombatStatusComponent* CombatStatusComponent = UCCombatStatusComponent::GetCombatStatusComponent(NewBot))
 			CombatStatusComponent->OnHitTaken.AddDynamic(this, &ThisClass::OnBotKilled);
 	}
+
+	const float SpawnDelay = SpawnIntervalCurve->GetFloatValue(GetWorld()->TimeSeconds);
+	GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnDelay);
 }
 
 void ACArenaGameMode::OnBotKilled(const FAttackData& AttackData)

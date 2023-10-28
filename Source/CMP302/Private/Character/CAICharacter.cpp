@@ -41,8 +41,6 @@ void ACAICharacter::BeginPlay()
 
 	TweenSubsystem->AddTween(TweenHandle, 0, 1, Delegate);
 
-	MeshTransform = GetMesh()->GetComponentTransform();
-
 	InitAI();
 }
 

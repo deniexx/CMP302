@@ -16,7 +16,7 @@ class CMP302_API UCOverloadActionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-
+	
 	void BindPowerOverloadAction(UCAction_PowerOverload* InPowerOverloadAction);
 
 	UFUNCTION(BlueprintNativeEvent)

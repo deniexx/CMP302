@@ -40,9 +40,6 @@ protected:
 	UFUNCTION()
 	void TweenDrone(float Value);
 	
-	UPROPERTY()
-	FTransform MeshTransform;
-
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;

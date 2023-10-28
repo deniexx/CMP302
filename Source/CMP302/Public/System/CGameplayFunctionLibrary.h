@@ -58,6 +58,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static ACProjectile* SpawnProjectile(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character);
 
+	/**
+	 * 
+	 * @param WorldContextObject Object used to get the world
+	 * @param ProjectileClass Projectile class used as a template to spawn the projectile as
+	 * @param Character The Character owner of the projectile
+	 * @param Start The start position of the projectile
+	 * @param End The end position of the projectile
+	 * @return The spawned projectile, will return nullptr, if Character or ProjectileClass are not valid
+	 */
 	UFUNCTION(BlueprintCallable, Category = "GameplayFunctionLibrary", meta = (WorldContext = "WorldContextObject"))
 	static ACProjectile* SpawnProjectileWithStarAndEndPosition(const UObject* WorldContextObject, TSubclassOf<ACProjectile> ProjectileClass, ACCommonCharacter* Character, FVector Start, FVector End);
 

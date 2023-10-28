@@ -20,7 +20,10 @@ class CMP302_API UCShopWidgetComponent : public UUserWidget
 	GENERATED_BODY()
 
 public:
-
+	/**
+	 * Initializes the widget with the required data from the action
+	 * @param ActionClass Action class to be used to take data from
+	 */
 	void Init(TSubclassOf<UCAction> ActionClass);
 
 	virtual void NativeConstruct() override;

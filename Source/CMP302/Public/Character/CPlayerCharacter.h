@@ -184,10 +184,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer InputBlockingTags;
 
+	/** Last saved transform */
 	FTransform SpawnTransform;
 
+	/** If the player transform should be reset to the last saved one */
 	bool bResetTransform;
 
+	/** The room index the player is in */
 	int32 RoomIndex;
 
 	virtual void OnHitTaken(const FAttackData& AttackData) override;
@@ -206,6 +209,10 @@ public:
 	/** Returns FirstPersonCameraComponent sub object */
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	/**
+	 * Sets a new spawn transform and saves it to the save game object
+	 * @param InSpawnTransform The spawn transform to be set
+	 */
 	UFUNCTION(BlueprintCallable)
 	void SetSpawnTransform(const FTransform& InSpawnTransform);
 };

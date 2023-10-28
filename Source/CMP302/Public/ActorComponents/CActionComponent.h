@@ -82,9 +82,18 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	UCAction* GetAction(TSubclassOf<UCAction> ActionClass);
-	
+
+	/**
+	 * Gets the default tag that block action activations
+	 * @return The default tag for blocking action activations
+	 */
 	const FGameplayTag& GetDefaultBlockedTag();
 
+	/**
+	 * Checks if the action tag has been taken
+	 * @param ActionTag Action tag to check
+	 * @return True if an action with the supplied tag is already owned, false otherwise
+	 */
 	bool IsActionTagTaken(FGameplayTag ActionTag);
 
 protected:

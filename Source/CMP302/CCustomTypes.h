@@ -38,7 +38,7 @@ public:
 UENUM(BlueprintType)
 enum class ECInputMode : uint8
 {
-	None,
-	UIOnly,
-	GameOnly,
+	None UMETA(DisplayName = "None"),
+	UIOnly UMETA(DisplayName = "UIOnly"),
+	GameOnly UMETA(DisplayName = "GameOnly"),
 };

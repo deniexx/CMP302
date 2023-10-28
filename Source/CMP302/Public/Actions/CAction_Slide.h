@@ -55,6 +55,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Visuals")
 	TSubclassOf<UCameraModifier> CameraModifier;
 
+	/** The slide modifier used to modify the FOV during slide */
 	UPROPERTY()
 	UCameraModifier* AppliedCameraModifier;
 
@@ -66,19 +67,24 @@ protected:
 
 	UPROPERTY()
 	UCExtendedCharacterMovement* MovementComponent;
-	
+
+	/** The direction of the character velocity */
 	FVector VelocityDirection;
-	
+
+	/** How long has the character been sliding for */
 	float CurrentSlideDuration;
-	
+
 	float DefaultMaxWalkSpeed;
 
 	float StandingCapsuleHalfHeight;
 
+	/** The alpha variable used for the capsule half height lerp when crouching and uncrouching */
 	float CrouchAlpha;
 
+	/** Whether we are currently crouching */
 	bool bCrouching;
-
+	
+	/** Whether we are currently sliding */
 	bool bSliding;
 
 	/** Starts the actual sliding behaviour */

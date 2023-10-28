@@ -37,10 +37,11 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CurrencyAmount;
-
+	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UCShopWidgetComponent> ShopWidgetComponent;
 
+	/** The data table holding the purchasable actions */
 	UPROPERTY(EditDefaultsOnly)
 	UDataTable* PurchasableDataTable;
 
@@ -53,6 +54,7 @@ protected:
 
 private:
 
+	/** Populates the slots of the shop widget vertical box */
 	void PopulateSlots() const;
 
 	UFUNCTION()
