@@ -19,6 +19,9 @@ class CMP302_API ACArenaGameMode : public ACMP302GameMode
 	GENERATED_BODY()
 
 public:
+
+	ACArenaGameMode();
+	
 	virtual void StartPlay() override;
 
 	virtual void Tick(float DeltaSeconds) override;
@@ -38,9 +41,7 @@ protected:
 	UCurveFloat* DifficultyCurve;
 
 private:
-
-	bool bPlayerAlive;
-
+	
 	UFUNCTION()
 	void OnBotKilled(const FAttackData& AttackData);
 
@@ -48,7 +49,7 @@ private:
 	int32 BotsKilled;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Arena", meta = (AllowPrivateAccess = true))
-	double TimeSurvived;
+	float TimeSurvived;
 	
 	UFUNCTION()
 	void OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);

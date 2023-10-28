@@ -12,16 +12,23 @@
 
 static TAutoConsoleVariable<int32> CVarSpawnBots(
 	TEXT("DisableSpawnBots"),
-	true,
+	0,
 	TEXT("Disable spawning of bots via timer.")
 	TEXT("1 - Off")
 	TEXT("2 - On"),
 	ECVF_Cheat);
 
+ACArenaGameMode::ACArenaGameMode()
+{
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bCanEverTick = true;
+}
+
 void ACArenaGameMode::StartPlay()
 {
 	Super::StartPlay();
 
+	TimeSurvived = 0;
 	BotsKilled = 0;
 	GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnTimerInterval, true);
 }

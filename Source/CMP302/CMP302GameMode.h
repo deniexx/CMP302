@@ -40,6 +40,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> DeathWidgetClass; 
 
+	bool bPlayerAlive;
+	
 #if WITH_EDITOR
 	UFUNCTION(Exec)
 	void RestartRooms();

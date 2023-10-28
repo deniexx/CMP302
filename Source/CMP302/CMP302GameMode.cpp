@@ -24,6 +24,7 @@ void ACMP302GameMode::InitGame(const FString& MapName, const FString& Options, F
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
+	bPlayerAlive = true;
 	LoadGame();
 }
 
@@ -47,8 +48,9 @@ void ACMP302GameMode::OnPlayerHit(int RoomIndex)
 		RoomManagers[RoomIndex]->ResetRoom();
 	}
 
+	bPlayerAlive = false;
+	
 	UCGameplayUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UCGameplayUISubsystem>();
-
 	UISubsystem->PushWidget(DeathWidgetClass, ECInputMode::UIOnly, true, true, true);
 }
 
