@@ -58,6 +58,7 @@ void ACArenaGameMode::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryIn
 {
 	if(CVarSpawnBots.GetValueOnGameThread() > 0)
 	{
+		/** Reset the spawn behaviour, because we still want to keep on checking, in case we enable bot spawning */
 		const float SpawnDelay = SpawnIntervalCurve->GetFloatValue(GetWorld()->TimeSeconds);
 		GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnDelay);
 		
@@ -92,6 +93,9 @@ void ACArenaGameMode::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryIn
 
 	if (NumAliveBots >= MaxBotCount)
 	{
+		/** Reset spawning timer, because we've reached max bots, but we still want to keep on checking for spawns */
+		const float SpawnDelay = SpawnIntervalCurve->GetFloatValue(GetWorld()->TimeSeconds);
+		GetWorldTimerManager().SetTimer(SpawnBotsHandle, this, &ThisClass::SpawnBotTimerElapsed, SpawnDelay);
 		UE_LOG(LogCMP, Log, TEXT("At maximum bot capacity. Skipping spawn."))
 		return;
 	}
