@@ -28,7 +28,7 @@ UCCombatStatusComponent* UCCombatStatusComponent::GetCombatStatusComponent(const
 	return nullptr;
 }
 
-// @TODO: Extract the colour changing behaviour into an action that also binds the input for it
+// @TODO: This will be kept, we will have switching between 2 states in an action to swap the currently active environment
 // @TODO: Add a boss fight where you have to match your colour to his (could be both matching his attacks to avoid them or matching the colour in order to damage him)
 // @TODO: !Potential! add rails that have status types and you can only attach yourself to them if you have the appropriate status (these can change colour during play/boss attacks)
 // @TODO: !Potential! status dependant grapple targets

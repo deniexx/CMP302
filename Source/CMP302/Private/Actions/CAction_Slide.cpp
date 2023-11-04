@@ -106,7 +106,8 @@ void UCAction_Slide::StartAction_Implementation(AActor* InInstigator)
 	MaxSlideSpeed = DefaultMaxWalkSpeed + 150.f;
 	MovementComponent->MaxWalkSpeed = MovementComponent->MaxWalkSpeedCrouched;
 	const float HorizontalVelocity = FMath::Abs(MovementComponent->Velocity.X) + FMath::Abs(MovementComponent->Velocity.Y);
-	if (HorizontalVelocity > 100.f)
+	const float VelocityAngle = FVector::DotProduct(MovementComponent->Velocity, Character->GetActorForwardVector());
+	if (HorizontalVelocity > 100.f && VelocityAngle > 0.f)
 	{
 		VelocityDirection = MovementComponent->Velocity.GetSafeNormal();
 		VelocityDirection.Z = 0;

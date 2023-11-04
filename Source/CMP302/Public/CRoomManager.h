@@ -9,6 +9,8 @@
 class UBoxComponent;
 class ACEnemySpawner;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRoomStateUpdated);
+
 UCLASS()
 class CMP302_API ACRoomManager : public AActor
 {
@@ -74,10 +76,16 @@ protected:
 	UBoxComponent* RoomExtends;
 
 	UFUNCTION()
-	void OnRoomEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
+	void RoomEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
+
+	UPROPERTY(BlueprintAssignable, Category = "Rooms")
+	FOnRoomStateUpdated OnRoomEntered;
+
+	UPROPERTY(BlueprintAssignable, Category = "Rooms")
+	FOnRoomStateUpdated OnRoomCleared;
+	
 	/**
 	 * Sets the index of the current room to the given value
 	 * @param Index The new index of the room be set

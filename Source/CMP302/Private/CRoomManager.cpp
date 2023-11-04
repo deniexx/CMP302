@@ -29,7 +29,7 @@ void ACRoomManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	RoomExtends->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnRoomEntered);
+	RoomExtends->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::RoomEntered);
 
 	for (ACEnemySpawner* Spawner : EnemySpawners)
 	{
@@ -84,6 +84,7 @@ void ACRoomManager::RoomCleared()
 {
 	bRoomCleared = true;
 
+	OnRoomCleared.Broadcast();
 	ACMP302GameMode* GameMode = GetWorld()->GetAuthGameMode<ACMP302GameMode>();
 	GameMode->WriteSaveGame();
 }
@@ -93,7 +94,7 @@ void ACRoomManager::SetRoomIndex(int32 Index)
 	RoomIndex = Index;
 }
 
-void ACRoomManager::OnRoomEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ACRoomManager::RoomEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (bRoomCleared) return;
@@ -101,5 +102,6 @@ void ACRoomManager::OnRoomEntered(UPrimitiveComponent* OverlappedComponent, AAct
 	if (OtherActor->IsA(ACPlayerCharacter::StaticClass()))
 	{
 		SpawnEnemies();
+		OnRoomEntered.Broadcast();
 	}
 }

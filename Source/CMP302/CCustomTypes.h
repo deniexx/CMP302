@@ -15,6 +15,14 @@ enum class EAttackStatusType : uint8
 	White UMETA(DisplayName = "White") // This attack always hits, it can be used by the cheats too
 };
 
+UENUM(BlueprintType)
+enum class EVoidMode : uint8
+{
+	None UMETA(DisplayName = "None"), // This is just the default
+	Live UMETA(DisplayName = "Live"), // This means that the mesh has collision and is currently "enabled"
+	Ghost UMETA(DisplayName = "Ghost") // This mean s that the mesh has no collision and is currently "disabled"
+};
+
 USTRUCT(BlueprintType)
 struct FAttackData
 {
