@@ -5,7 +5,10 @@
 #include "CoreMinimal.h"
 #include "CMP302/CCustomTypes.h"
 #include "GameFramework/Actor.h"
+
 #include "CVoidActor.generated.h"
+
+class UPrimitiveComponent;
 
 UCLASS()
 class CMP302_API ACVoidActor : public AActor
@@ -26,6 +29,28 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void OnStateSwitched(EVoidMode NewVoidMode);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VoidMode")
+	FLinearColor GhostModeColor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "VoidMode")
+	FLinearColor LiveModeColor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "VoidMode")
+	float GhostModeAlphaReduce;
+
+	UPROPERTY(EditDefaultsOnly, Category = "VoidMode")
+	float LiveModeAlphaReduce;
+
+	UPROPERTY(BlueprintReadWrite, Category = "VoidMode")
+	TArray<UPrimitiveComponent*> VoidModeComponents;
+
+	UPROPERTY(BlueprintReadWrite, Category = "VoidMode")
+	TArray<UMaterialInstanceDynamic*> DynamicMaterials;
+
+private:
+
+	void UpdateColourOnStateSwitched(EVoidMode NewVoidMode);
 
 public:
 	

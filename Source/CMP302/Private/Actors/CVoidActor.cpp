@@ -3,6 +3,8 @@
 
 #include "Actors/CVoidActor.h"
 
+#include "Components/PrimitiveComponent.h"
+
 // Sets default values
 ACVoidActor::ACVoidActor()
 {
@@ -10,6 +12,8 @@ ACVoidActor::ACVoidActor()
 	PrimaryActorTick.bCanEverTick = false;
 
 	VoidMode = EVoidMode::None;
+	LiveModeColor = FLinearColor(0.2f, 0.21, 0.08f, 1.f);
+	GhostModeColor = FLinearColor(0.08f, 0.2f, 0.22f);
 }
 
 // Called when the game starts or when spawned
@@ -17,6 +21,9 @@ void ACVoidActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	LiveModeAlphaReduce = 0.f;
+	GhostModeAlphaReduce = 0.9f;
+	UpdateColourOnStateSwitched(VoidMode);
 	OnStateSwitched(VoidMode);
 }
 
@@ -33,7 +40,39 @@ void ACVoidActor::SwitchVoidState()
 		break;
 	}
 
+	UpdateColourOnStateSwitched(VoidMode);
 	OnStateSwitched(VoidMode);
+}
+
+void ACVoidActor::UpdateColourOnStateSwitched(EVoidMode NewVoidMode)
+{
+	FLinearColor ColorToSet;
+	float AlphaReduceAmount = 0.f;
+	ECollisionEnabled::Type CollisionType;
+	switch (VoidMode)
+	{
+	case EVoidMode::Live:
+		ColorToSet = LiveModeColor;
+		CollisionType = ECollisionEnabled::QueryAndPhysics;
+		AlphaReduceAmount = LiveModeAlphaReduce;
+		break;
+	case EVoidMode::Ghost:
+		ColorToSet = GhostModeColor;
+		CollisionType = ECollisionEnabled::NoCollision;
+		AlphaReduceAmount = GhostModeAlphaReduce;
+		break;
+	}
+
+	for (UMaterialInstanceDynamic* Material : DynamicMaterials)
+	{
+		Material->SetVectorParameterValue("Color", ColorToSet);
+		Material->SetScalarParameterValue("AlphaReduceAmount", AlphaReduceAmount);
+	}
+
+	for (UPrimitiveComponent* Component : VoidModeComponents)
+	{
+		Component->SetCollisionEnabled(CollisionType);
+	}
 }
 
 void ACVoidActor::OnStateSwitched_Implementation(EVoidMode NewVoidMode)
