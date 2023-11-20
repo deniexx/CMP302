@@ -46,6 +46,9 @@ protected:
 
 private:
 	
+	/**
+	 * Function called when a bot has been killed to detect the number of bots killed
+	 */
 	UFUNCTION()
 	void OnBotKilled(const FAttackData& AttackData);
 
