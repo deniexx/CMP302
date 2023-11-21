@@ -166,7 +166,7 @@ bool UCAction_Slide::CanUncrouch() const
 
 bool UCAction_Slide::IsOnGround() const
 {
-	return !MovementComponent->IsMovingOnGround();
+	return !GetOwningComponent()->ActiveGameplayTags.HasTagExact(InAirTag);
 }
 
 void UCAction_Slide::EndSliding()
